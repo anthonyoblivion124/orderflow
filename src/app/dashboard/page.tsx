@@ -6,14 +6,14 @@ import MainAppLayout from "@/components/layout/MainAppLayout";
 import PageHeader from "@/components/shared/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import { DollarSign, ListChecks, ShoppingCart, Users } from "lucide-react";
+import { DollarSign, ListChecks, ShoppingCart, Users, PackageSearch } from "lucide-react"; // Added PackageSearch
 
 // Mock data for dashboard stats
 const stats = [
   { title: "Total Purchase Orders", value: "1,234", icon: ShoppingCart, color: "text-primary" },
   { title: "Pending Approvals", value: "56", icon: ListChecks, color: "text-yellow-500" },
-  { title: "Active Suppliers", value: "230", icon: Users, color: "text-green-500" },
-  { title: "Total Spent (This Month)", value: "12,567,000 MMK", icon: DollarSign, color: "text-destructive" }, // Updated to MMK
+  // { title: "Active Suppliers", value: "230", icon: Users, color: "text-green-500" }, // Removed Active Suppliers
+  { title: "Total Spent (This Month)", value: "12,567,000 MMK", icon: DollarSign, color: "text-destructive" },
 ];
 
 export default function DashboardPage() {
@@ -27,7 +27,7 @@ export default function DashboardPage() {
           description="Here's an overview of your procurement activities."
         />
         
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"> {/* Adjusted grid columns since one card is removed */}
           {stats.map((stat, index) => (
             <Card key={index} className="shadow-lg hover:shadow-xl transition-shadow duration-200">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -60,14 +60,17 @@ export default function DashboardPage() {
           </Card>
           <Card className="shadow-lg">
             <CardHeader>
-              <CardTitle>Supplier Activity</CardTitle>
+              <CardTitle className="flex items-center">
+                <PackageSearch className="mr-2 h-5 w-5 text-accent" /> {/* Added icon */}
+                Recent Items Ordered
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Information about top suppliers or supplier-related tasks.
+                Overview of frequently or recently ordered items.
               </p>
                <div className="mt-4 h-64 flex items-center justify-center bg-muted/50 rounded-md">
-                 <span className="text-muted-foreground">Activity feed placeholder</span>
+                 <span className="text-muted-foreground">Recent items list/chart placeholder</span>
               </div>
             </CardContent>
           </Card>
