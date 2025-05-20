@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -32,7 +33,7 @@ type SidebarContext = {
   setOpen: (open: boolean) => void
   openMobile: boolean
   setOpenMobile: (open: boolean) => void
-  isMobile: boolean
+  isMobile: boolean | undefined; // Allow undefined initially
   toggleSidebar: () => void
 }
 
@@ -67,7 +68,7 @@ const SidebarProvider = React.forwardRef<
     },
     ref
   ) => {
-    const isMobile = useIsMobile()
+    const isMobile = useIsMobile() // isMobile can be undefined initially
     const [openMobile, setOpenMobile] = React.useState(false)
 
     // This is the internal state of the sidebar.
@@ -91,10 +92,16 @@ const SidebarProvider = React.forwardRef<
 
     // Helper to toggle the sidebar.
     const toggleSidebar = React.useCallback(() => {
-      return isMobile
-        ? setOpenMobile((open) => !open)
-        : setOpen((open) => !open)
+      // Check if isMobile is defined before using it
+      if (isMobile) {
+        setOpenMobile((currentOpenMobile) => !currentOpenMobile);
+      } else if (isMobile === false) { // Explicitly check for false if it's not undefined
+        setOpen((currentOpen) => !currentOpen);
+      }
+      // If isMobile is undefined, this function might not behave as expected or do nothing.
+      // This is generally fine as it will re-evaluate once isMobile is set.
     }, [isMobile, setOpen, setOpenMobile])
+
 
     // Adds a keyboard shortcut to toggle the sidebar.
     React.useEffect(() => {
@@ -176,6 +183,13 @@ const Sidebar = React.forwardRef<
     ref
   ) => {
     const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+
+    if (isMobile === undefined) {
+      // Prevent rendering mismatch during hydration for mobile-responsive parts
+      // Returning null ensures the client doesn't render one version and then switch,
+      // which can cause hydration errors.
+      return null;
+    }
 
     if (collapsible === "none") {
       return (
@@ -583,7 +597,7 @@ const SidebarMenuButton = React.forwardRef<
         <TooltipContent
           side="right"
           align="center"
-          hidden={state !== "collapsed" || isMobile}
+          hidden={state !== "collapsed" || isMobile === true || isMobile === undefined} // Hide if expanded, or on mobile, or if mobile status unknown
           {...tooltip}
         />
       </Tooltip>
