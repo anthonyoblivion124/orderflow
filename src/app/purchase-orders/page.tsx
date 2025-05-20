@@ -28,7 +28,7 @@ export default function PurchaseOrdersPage() {
       const enrichedPOs = MOCK_PURCHASE_ORDERS.map(po => {
         const supplier = MOCK_SUPPLIERS.find(s => s.id === po.supplierId);
         return { ...po, supplierName: supplier ? supplier.name : 'Unknown Supplier' };
-      });
+      }).sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime()); // Sort by orderDate descending
       setPurchaseOrders(enrichedPOs);
       setIsLoading(false);
     }, 500);
@@ -36,6 +36,11 @@ export default function PurchaseOrdersPage() {
 
   const handleDeletePurchaseOrder = (poId: string) => {
     // In a real app, call API then update state
+    // For mock data, find and remove from MOCK_PURCHASE_ORDERS as well
+    const index = MOCK_PURCHASE_ORDERS.findIndex(po => po.id === poId);
+    if (index > -1) {
+        MOCK_PURCHASE_ORDERS.splice(index, 1);
+    }
     setPurchaseOrders(prev => prev.filter(po => po.id !== poId));
     toast({ title: "Purchase Order Deleted", description: "PO has been removed." });
   };
@@ -81,3 +86,4 @@ export default function PurchaseOrdersPage() {
     </AuthGuard>
   );
 }
+
