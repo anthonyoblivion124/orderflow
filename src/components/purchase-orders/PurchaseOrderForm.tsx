@@ -59,7 +59,7 @@ export default function PurchaseOrderForm({ onSubmit, initialData, suppliers, is
         items: [{ itemCode: "", name: "", quantity: 1, price: 0 }],
         currency: "MMK", // Default to MMK
         currencyRate: 1.0, // Default rate for MMK
-        status: "Draft",
+        status: "Pending", // Default to Pending
         notes: "",
       },
   });
@@ -82,7 +82,7 @@ export default function PurchaseOrderForm({ onSubmit, initialData, suppliers, is
         items: [{ itemCode: "", name: "", quantity: 1, price: 0 }],
         currency: "MMK", // Reset to MMK
         currencyRate: 1.0, // Reset rate
-        status: "Draft",
+        status: "Pending", // Reset to Pending
         notes: "",
        });
     }

@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { MOCK_PURCHASE_ORDERS, MOCK_SUPPLIERS } from "@/lib/mockData";
 import type { PurchaseOrder, Supplier } from "@/types";
-import { ArrowLeft, Edit, Printer, DollarSign, CalendarDays, Truck, Info, CheckCircle, XCircle, Settings2 } from "lucide-react";
+import { ArrowLeft, Edit, Printer, DollarSign, CalendarDays, Truck, Info, CheckCircle, XCircle, Settings2, FileText } from "lucide-react";
 import FullScreenLoader from "@/components/FullScreenLoader";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
@@ -30,7 +30,7 @@ export default function ViewPurchaseOrderPage() {
   const { hasRole } = useAuth();
 
   const canEditPO = (status: PurchaseOrder["status"]) => {
-    return hasRole(['admin', 'manager']) && (status === "Draft" || status === "Pending");
+    return hasRole(['admin', 'manager']) && status === "Pending";
   };
 
   useEffect(() => {
@@ -51,29 +51,21 @@ export default function ViewPurchaseOrderPage() {
 
   const getStatusIcon = (status: PurchaseOrder["status"]) => {
     switch (status) {
-      case "Draft": return <Settings2 className="h-5 w-5 text-muted-foreground" />;
       case "Pending": return <Info className="h-5 w-5 text-yellow-500" />;
-      case "Approved": return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case "Shipped": return <Truck className="h-5 w-5 text-blue-500" />;
-      case "Delivered": return <CheckCircle className="h-5 w-5 text-primary" />;
-      case "Cancelled": return <XCircle className="h-5 w-5 text-destructive" />;
+      case "Payment Required": return <FileText className="h-5 w-5 text-orange-500" />;
+      case "Completed": return <CheckCircle className="h-5 w-5 text-primary" />;
       default: return <Info className="h-5 w-5 text-muted-foreground" />;
     }
   };
   
   const getStatusBadgeVariant = (status: PurchaseOrder["status"]) => {
     switch (status) {
-      case "Approved":
-      case "Delivered":
+      case "Completed":
         return "default"; 
       case "Pending":
         return "secondary"; 
-      case "Shipped":
+      case "Payment Required":
         return "outline"; 
-      case "Draft":
-        return "secondary" 
-      case "Cancelled":
-        return "destructive";
       default:
         return "secondary";
     }

@@ -28,7 +28,7 @@ export const purchaseOrderSchema = z.object({
   items: z.array(purchaseOrderItemSchema).min(1, "At least one item is required."),
   currency: z.string().min(3, "Currency code must be 3 characters.").max(3, "Currency code must be 3 characters."),
   currencyRate: z.coerce.number().min(0.000001, "Currency rate must be a positive number."),
-  status: z.enum(["Draft", "Pending", "Approved", "Shipped", "Delivered", "Cancelled"], {
+  status: z.enum(["Pending", "Payment Required", "Completed"], {
     required_error: "Status is required.",
   }),
   notes: z.string().max(500, "Notes cannot exceed 500 characters.").optional(),

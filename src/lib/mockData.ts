@@ -69,7 +69,7 @@ export const MOCK_PURCHASE_ORDERS: PurchaseOrder[] = [
     items: createMockItems(2),
     currency: "USD",
     currencyRate: 1.0,
-    status: "Approved",
+    status: "Completed", // Updated status
     notes: "Urgent delivery required.",
     grandTotal: 0, // Will be calculated below
     createdBy: "user-2",
@@ -86,7 +86,7 @@ export const MOCK_PURCHASE_ORDERS: PurchaseOrder[] = [
     items: createMockItems(3),
     currency: "EUR",
     currencyRate: 1.08, // Example rate EUR to USD
-    status: "Pending",
+    status: "Pending", // Status remains valid
     grandTotal: 0,
     createdBy: "user-2",
     createdAt: new Date(2024, 5, 20).toISOString(),
@@ -102,7 +102,7 @@ export const MOCK_PURCHASE_ORDERS: PurchaseOrder[] = [
     items: createMockItems(1),
     currency: "SGD",
     currencyRate: 0.74, // Example rate SGD to USD
-    status: "Shipped",
+    status: "Payment Required", // Updated status
     grandTotal: 0,
     createdBy: "user-1",
     createdAt: new Date(2024, 6, 5).toISOString(),

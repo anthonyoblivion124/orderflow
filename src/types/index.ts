@@ -29,7 +29,7 @@ export interface PurchaseOrderItem {
   total: number; // quantity * price
 }
 
-export type PurchaseOrderStatus = "Pending" | "Approved" | "Shipped" | "Delivered" | "Cancelled" | "Draft";
+export type PurchaseOrderStatus = "Pending" | "Payment Required" | "Completed";
 
 export interface PurchaseOrder {
   id: string;

@@ -32,7 +32,7 @@ export default function EditPurchaseOrderPage() {
       setTimeout(() => {
         const foundPO = MOCK_PURCHASE_ORDERS.find(p => p.id === id);
         if (foundPO) {
-          if (foundPO.status !== "Draft" && foundPO.status !== "Pending") {
+          if (foundPO.status !== "Pending") { // Only "Pending" POs can be edited
              toast({ title: "Edit Not Allowed", description: `PO in '${foundPO.status}' status cannot be edited.`, variant: "destructive"});
              router.push(`/purchase-orders/${id}`); // Redirect to view page
              return;

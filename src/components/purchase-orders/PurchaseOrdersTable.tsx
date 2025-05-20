@@ -45,17 +45,12 @@ export default function PurchaseOrdersTable({ purchaseOrders, onDelete, searchTe
 
   const getStatusBadgeVariant = (status: PurchaseOrder["status"]) => {
     switch (status) {
-      case "Approved":
-      case "Delivered":
+      case "Completed":
         return "default"; // bg-primary
       case "Pending":
         return "secondary"; // bg-secondary (light blue)
-      case "Shipped":
+      case "Payment Required":
         return "outline"; // uses accent color for border if themed
-      case "Draft":
-        return "secondary" 
-      case "Cancelled":
-        return "destructive";
       default:
         return "secondary";
     }
@@ -132,14 +127,14 @@ export default function PurchaseOrdersTable({ purchaseOrders, onDelete, searchTe
                             <Eye className="mr-2 h-4 w-4" /> View
                           </Link>
                         </DropdownMenuItem>
-                        {canEdit && (po.status === "Draft" || po.status === "Pending") && (
+                        {canEdit && po.status === "Pending" && (
                         <DropdownMenuItem asChild>
                           <Link href={`/purchase-orders/${po.id}/edit`} className="cursor-pointer">
                             <PenSquare className="mr-2 h-4 w-4" /> Edit
                           </Link>
                         </DropdownMenuItem>
                         )}
-                        {canDelete && (po.status === "Draft" || po.status === "Cancelled") && (
+                        {canDelete && po.status === "Pending" && (
                         <DropdownMenuItem onClick={() => onDelete(po.id)} className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
                           <Trash2 className="mr-2 h-4 w-4" /> Delete
                         </DropdownMenuItem>
@@ -158,4 +153,3 @@ export default function PurchaseOrdersTable({ purchaseOrders, onDelete, searchTe
     </Card>
   );
 }
-

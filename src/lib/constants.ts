@@ -14,7 +14,7 @@ export const NAV_LINKS = [
   // { href: "/settings", label: "Settings", icon: Settings, roles: ["admin", "manager"] }, // Example for role-specific link
 ];
 
-export const PO_STATUSES: PurchaseOrderStatus[] = ["Draft", "Pending", "Approved", "Shipped", "Delivered", "Cancelled"];
+export const PO_STATUSES: PurchaseOrderStatus[] = ["Pending", "Payment Required", "Completed"];
 export const CURRENCIES = [
   { code: "USD", name: "US Dollar" },
   { code: "EUR", name: "Euro" },
@@ -26,4 +26,3 @@ export const CURRENCIES = [
   { code: "VND", name: "Vietnamese Dong" },
   { code: "MMK", name: "Myanmar Kyat" },
 ];
-
