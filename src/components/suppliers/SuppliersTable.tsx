@@ -2,6 +2,7 @@
 "use client";
 
 import Link from "next/link";
+import * as React from "react";
 import {
   Table,
   TableBody,
@@ -12,13 +13,14 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Eye, MoreHorizontal, PenSquare, Trash2 } from "lucide-react";
 import type { Supplier } from "@/types";
-import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 interface SuppliersTableProps {
   suppliers: Supplier[];
@@ -29,8 +31,17 @@ interface SuppliersTableProps {
 
 export default function SuppliersTable({ suppliers, onDelete, searchTerm, onSearchTermChange }: SuppliersTableProps) {
   const { hasRole } = useAuth();
+  const { toast } = useToast();
   const canEdit = hasRole(['admin', 'manager']);
   const canDelete = hasRole(['admin']);
+
+  const handleDelete = (supplierId: string, supplierName: string) => {
+    onDelete(supplierId);
+    toast({
+      title: "Supplier Deleted",
+      description: `Supplier "${supplierName}" has been removed.`,
+    });
+  };
 
   return (
     <Card className="shadow-lg">
@@ -75,33 +86,57 @@ export default function SuppliersTable({ suppliers, onDelete, searchTerm, onSear
                   <TableCell>{supplier.phone}</TableCell>
                   <TableCell>{format(new Date(supplier.createdAt), "dd MMM yyyy")}</TableCell>
                   <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Open menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link href={`/suppliers/${supplier.id}`} className="cursor-pointer">
-                            <Eye className="mr-2 h-4 w-4" /> View
-                          </Link>
-                        </DropdownMenuItem>
-                        {canEdit && (
-                        <DropdownMenuItem asChild>
-                           <Link href={`/suppliers/${supplier.id}/edit`} className="cursor-pointer">
-                            <PenSquare className="mr-2 h-4 w-4" /> Edit
-                          </Link>
-                        </DropdownMenuItem>
-                        )}
-                        {canDelete && (
-                        <DropdownMenuItem onClick={() => onDelete(supplier.id)} className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
-                          <Trash2 className="mr-2 h-4 w-4" /> Delete
-                        </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <AlertDialog>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link href={`/suppliers/${supplier.id}`} className="cursor-pointer">
+                              <Eye className="mr-2 h-4 w-4" /> View
+                            </Link>
+                          </DropdownMenuItem>
+                          {canEdit && (
+                          <DropdownMenuItem asChild>
+                             <Link href={`/suppliers/${supplier.id}/edit`} className="cursor-pointer">
+                              <PenSquare className="mr-2 h-4 w-4" /> Edit
+                            </Link>
+                          </DropdownMenuItem>
+                          )}
+                          {canDelete && (
+                            <AlertDialogTrigger asChild>
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
+                                onSelect={(e) => e.preventDefault()} // Prevents DropdownMenu from closing
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" /> Delete
+                              </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the supplier "{supplier.name}" and all associated data.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDelete(supplier.id, supplier.name)}
+                            className={buttonVariants({ variant: "destructive" })}
+                          >
+                            Yes, delete supplier
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </TableCell>
                 </TableRow>
               ))}

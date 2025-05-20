@@ -8,10 +8,11 @@ import PageHeader from "@/components/shared/PageHeader";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { MOCK_SUPPLIERS } from "@/lib/mockData";
-import SuppliersTable from "@/components/suppliers/SuppliersTable"; // To be created
+import SuppliersTable from "@/components/suppliers/SuppliersTable";
 import { useState, useEffect } from "react";
 import type { Supplier } from "@/types";
-import FullScreenLoader from "@/components/FullScreenLoader"; // Assuming this component exists
+import FullScreenLoader from "@/components/FullScreenLoader"; 
+// Removed unused useToast import, as toast is now handled in SuppliersTable
 
 export default function SuppliersPage() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -28,8 +29,8 @@ export default function SuppliersPage() {
 
   const handleDeleteSupplier = (supplierId: string) => {
     // In a real app, call API then update state
+    // The toast notification is now handled within SuppliersTable after confirmation
     setSuppliers(prev => prev.filter(s => s.id !== supplierId));
-    // toast({ title: "Supplier Deleted", description: "Supplier has been removed." });
   };
 
   const filteredSuppliers = suppliers.filter(supplier =>
