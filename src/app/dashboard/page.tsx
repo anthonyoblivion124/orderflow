@@ -6,7 +6,7 @@ import MainAppLayout from "@/components/layout/MainAppLayout";
 import PageHeader from "@/components/shared/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import { DollarSign, ListChecks, ShoppingCart, PackageSearch, Eye, Award } from "lucide-react";
+import { DollarSign, ListChecks, ShoppingCart, Eye, Award } from "lucide-react";
 import { MOCK_PURCHASE_ORDERS } from "@/lib/mockData";
 import type { PurchaseOrder } from "@/types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 
 interface RankedItem {
   rank: number;
+  itemCode?: string;
   name: string;
   quantity: number;
 }
@@ -57,19 +58,28 @@ export default function DashboardPage() {
     ]);
 
     // Calculate most ordered items
-    const itemQuantities: { [itemName: string]: number } = {};
+    const itemDetails: { [itemName: string]: { quantity: number; itemCode?: string } } = {};
     MOCK_PURCHASE_ORDERS.forEach(po => {
       po.items.forEach(item => {
-        itemQuantities[item.name] = (itemQuantities[item.name] || 0) + item.quantity;
+        if (!itemDetails[item.name]) {
+          // Initialize with quantity 0 and the itemCode from the first encountered item with this name
+          itemDetails[item.name] = { quantity: 0, itemCode: item.itemCode };
+        }
+        itemDetails[item.name].quantity += item.quantity;
+        // If itemCode wasn't set during initialization (e.g. first item had no code), try to set it.
+        if (!itemDetails[item.name].itemCode && item.itemCode) {
+            itemDetails[item.name].itemCode = item.itemCode;
+        }
       });
     });
 
-    const aggregatedItems = Object.entries(itemQuantities)
-      .map(([name, quantity]) => ({ name, quantity }))
+    const aggregatedItems = Object.entries(itemDetails)
+      .map(([name, details]) => ({ name, quantity: details.quantity, itemCode: details.itemCode }))
       .sort((a, b) => b.quantity - a.quantity);
 
     const rankedTopItems = aggregatedItems.slice(0, 5).map((item, index) => ({
       rank: index + 1,
+      itemCode: item.itemCode,
       name: item.name,
       quantity: item.quantity,
     }));
@@ -167,7 +177,7 @@ export default function DashboardPage() {
           <Card className="shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center">
-                <Award className="mr-2 h-5 w-5 text-accent" /> {/* Changed icon to Award */}
+                <Award className="mr-2 h-5 w-5 text-accent" />
                 Most Ordered Items
               </CardTitle>
               <CardDescription>
@@ -181,6 +191,7 @@ export default function DashboardPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-[50px]">Rank</TableHead>
+                        <TableHead>Item Code</TableHead>
                         <TableHead>Item Name</TableHead>
                         <TableHead className="text-right">Total Quantity</TableHead>
                       </TableRow>
@@ -189,6 +200,7 @@ export default function DashboardPage() {
                       {topOrderedItems.map((item) => (
                         <TableRow key={item.rank}>
                           <TableCell className="font-medium text-center">{item.rank}</TableCell>
+                          <TableCell>{item.itemCode || "N/A"}</TableCell>
                           <TableCell>{item.name}</TableCell>
                           <TableCell className="text-right">{item.quantity.toLocaleString()}</TableCell>
                         </TableRow>
