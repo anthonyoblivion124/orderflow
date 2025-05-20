@@ -24,5 +24,6 @@ export const CURRENCIES = [
   { code: "SGD", name: "Singapore Dollar" },
   { code: "THB", name: "Thai Baht" },
   { code: "VND", name: "Vietnamese Dong" },
+  { code: "MMK", name: "Myanmar Kyat" },
 ];
 
