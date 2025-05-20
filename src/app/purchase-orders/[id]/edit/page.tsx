@@ -31,11 +31,12 @@ export default function EditPurchaseOrderPage() {
       setTimeout(() => {
         const foundPO = MOCK_PURCHASE_ORDERS.find(p => p.id === id);
         if (foundPO) {
-          if (foundPO.status !== "Pending") { 
-             toast({ title: "Edit Not Allowed", description: `PO in '${foundPO.status}' status cannot be edited.`, variant: "destructive"});
-             router.push(`/purchase-orders/${id}`); 
-             return;
-          }
+          // Removed status check: POs can now be edited regardless of status by admin/manager
+          // if (foundPO.status !== "Pending") { 
+          //    toast({ title: "Edit Not Allowed", description: `PO in '${foundPO.status}' status cannot be edited.`, variant: "destructive"});
+          //    router.push(`/purchase-orders/${id}`); 
+          //    return;
+          // }
           setPo(foundPO);
         } else {
           router.push("/purchase-orders?error=notfound_edit");
@@ -59,7 +60,6 @@ export default function EditPurchaseOrderPage() {
         ...MOCK_PURCHASE_ORDERS[poIndex],
         ...data,
         orderDate: data.orderDate.toISOString(),
-        // expectedDeliveryDate: data.expectedDeliveryDate.toISOString(), // Removed
         items: data.items.map(item => ({
             ...item,
             id: item.id || `item-${Date.now()}-${Math.random()}`, 

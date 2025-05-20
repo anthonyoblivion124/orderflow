@@ -36,8 +36,10 @@ export default function PurchaseOrdersTable({ purchaseOrders, onDelete, searchTe
   const { user, hasRole, hasFeaturePermission } = useAuth(); // Get user role
   
   const isViewer = user?.role === 'viewer';
-  const canEditPO = (status: PurchaseOrder["status"]) => hasFeaturePermission("managePurchaseOrders") && status === "Pending";
-  const canDeletePO = (status: PurchaseOrder["status"]) => hasRole(["admin"]) && status === "Pending";
+  // Edit permission relies on feature flag, not status
+  const canUserEditPO = hasFeaturePermission("managePurchaseOrders"); 
+  // Delete permission is for admin only, and for Pending POs
+  const canUserDeletePO = (status: PurchaseOrder["status"]) => hasRole(["admin"]) && status === "Pending";
 
 
   const copyToClipboard = (text: string, type: string, event: React.MouseEvent) => {
@@ -96,7 +98,6 @@ export default function PurchaseOrdersTable({ purchaseOrders, onDelete, searchTe
                 <TableHead>PO Number</TableHead>
                 {!minimal && <TableHead>Supplier</TableHead>}
                 <TableHead>Order Date</TableHead>
-                {/* Expected Delivery Column Removed */}
                 <TableHead>Status</TableHead>
                 {!isViewer && <TableHead className="text-right">Total Amount</TableHead>}
                 {!minimal && <TableHead className="text-right w-[100px]">Actions</TableHead>}
@@ -116,7 +117,6 @@ export default function PurchaseOrdersTable({ purchaseOrders, onDelete, searchTe
                   </TableCell>
                   {!minimal && <TableCell>{po.supplierName}</TableCell>}
                   <TableCell>{format(new Date(po.orderDate), "dd MMM yyyy")}</TableCell>
-                  {/* Expected Delivery Cell Removed */}
                   <TableCell>
                     <Badge variant={getStatusBadgeVariant(po.status)}>{po.status}</Badge>
                   </TableCell>
@@ -136,14 +136,14 @@ export default function PurchaseOrdersTable({ purchaseOrders, onDelete, searchTe
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        {canEditPO(po.status) && (
+                        {canUserEditPO && (
                         <DropdownMenuItem asChild>
                           <Link href={`/purchase-orders/${po.id}/edit`} className="cursor-pointer">
                             <PenSquare className="mr-2 h-4 w-4" /> Edit
                           </Link>
                         </DropdownMenuItem>
                         )}
-                        {canDeletePO(po.status) && (
+                        {canUserDeletePO(po.status) && (
                         <DropdownMenuItem onClick={() => onDelete(po.id)} className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
                           <Trash2 className="mr-2 h-4 w-4" /> Delete
                         </DropdownMenuItem>

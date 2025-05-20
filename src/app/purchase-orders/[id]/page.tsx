@@ -29,9 +29,8 @@ export default function ViewPurchaseOrderPage() {
   const [isLoading, setIsLoading] = useState(true);
   const { user, hasRole } = useAuth();
 
-  const canEditPO = (status: PurchaseOrder["status"]) => {
-    return hasRole(['admin', 'manager']) && status === "Pending";
-  };
+  // Admins and managers can edit POs regardless of status.
+  const canUserEditPO = hasRole(['admin', 'manager']);
 
   const isViewer = user?.role === 'viewer';
 
@@ -113,7 +112,7 @@ export default function ViewPurchaseOrderPage() {
               <Button variant="outline" asChild>
                 <Link href="/purchase-orders"><ArrowLeft className="mr-2 h-4 w-4"/> Back to List</Link>
               </Button>
-              {canEditPO(po.status) && (
+              {canUserEditPO && (
               <Button asChild>
                 <Link href={`/purchase-orders/${po.id}/edit`}>
                   <Edit className="mr-2 h-4 w-4" /> Edit PO
@@ -146,12 +145,11 @@ export default function ViewPurchaseOrderPage() {
             </div>
           </CardHeader>
           <CardContent className="p-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm"> {/* Changed md:grid-cols-3 to md:grid-cols-2 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
               <div className="space-y-1">
                 <p className="text-muted-foreground flex items-center"><CalendarDays className="mr-2 h-4 w-4 text-accent"/>Order Date</p>
                 <p className="font-medium">{format(new Date(po.orderDate), "PPP")}</p>
               </div>
-              {/* Expected Delivery Date Removed */}
                <div className="space-y-1">
                 <p className="text-muted-foreground flex items-center"><DollarSign className="mr-2 h-4 w-4 text-accent"/>Currency Info</p>
                 <p className="font-medium">
