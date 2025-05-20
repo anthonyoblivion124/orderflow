@@ -13,7 +13,7 @@ const stats = [
   { title: "Total Purchase Orders", value: "1,234", icon: ShoppingCart, color: "text-primary" },
   { title: "Pending Approvals", value: "56", icon: ListChecks, color: "text-yellow-500" },
   { title: "Active Suppliers", value: "230", icon: Users, color: "text-green-500" },
-  { title: "Total Spent (This Month)", value: "$125,670", icon: DollarSign, color: "text-destructive" },
+  { title: "Total Spent (This Month)", value: "12,567,000 MMK", icon: DollarSign, color: "text-destructive" }, // Updated to MMK
 ];
 
 export default function DashboardPage() {

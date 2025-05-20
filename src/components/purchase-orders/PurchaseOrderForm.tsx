@@ -57,8 +57,8 @@ export default function PurchaseOrderForm({ onSubmit, initialData, suppliers, is
         orderDate: new Date(),
         expectedDeliveryDate: new Date(new Date().setDate(new Date().getDate() + 7)), // Default to 7 days from now
         items: [{ itemCode: "", name: "", quantity: 1, price: 0 }],
-        currency: "USD",
-        currencyRate: 1.0,
+        currency: "MMK", // Default to MMK
+        currencyRate: 1.0, // Default rate for MMK
         status: "Draft",
         notes: "",
       },
@@ -80,8 +80,8 @@ export default function PurchaseOrderForm({ onSubmit, initialData, suppliers, is
         orderDate: new Date(),
         expectedDeliveryDate: new Date(new Date().setDate(new Date().getDate() + 7)),
         items: [{ itemCode: "", name: "", quantity: 1, price: 0 }],
-        currency: "USD",
-        currencyRate: 1.0,
+        currency: "MMK", // Reset to MMK
+        currencyRate: 1.0, // Reset rate
         status: "Draft",
         notes: "",
        });
