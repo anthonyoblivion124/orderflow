@@ -7,6 +7,18 @@ export const APP_DESCRIPTION = "Manage your purchase orders efficiently.";
 
 export const USER_ROLES: UserRole[] = ["admin", "manager", "viewer"];
 
+export const DEFAULT_AVATARS: Record<UserRole, string> = {
+  admin: "https://placehold.co/100x100.png/3F51B5/FFFFFF?text=ADM", // Deep Blue bg
+  manager: "https://placehold.co/100x100.png/009688/FFFFFF?text=MGR", // Teal bg
+  viewer: "https://placehold.co/100x100.png/757575/FFFFFF?text=VWR", // Gray bg
+};
+
+export const DEFAULT_AVATAR_HINTS: Record<UserRole, string> = {
+  admin: "admin user",
+  manager: "manager user",
+  viewer: "viewer user",
+};
+
 export const NAV_LINKS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: USER_ROLES },
   { href: "/purchase-orders", label: "Purchase Orders", icon: ShoppingCart, roles: USER_ROLES },

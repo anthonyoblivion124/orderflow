@@ -4,9 +4,9 @@ import { format } from "date-fns";
 import { APP_FEATURES_PERMISSIONS } from "./constants";
 
 export const MOCK_USERS: User[] = [
-  { id: "user-1", email: "admin@example.com", name: "Admin User", role: "admin", avatarUrl: "https://placehold.co/100x100.png?text=AU" },
-  { id: "user-2", email: "manager@example.com", name: "Manager User", role: "manager", avatarUrl: "https://placehold.co/100x100.png?text=MU" },
-  { id: "user-3", email: "viewer@example.com", name: "Viewer User", role: "viewer", avatarUrl: "https://placehold.co/100x100.png?text=VU" },
+  { id: "user-1", email: "admin@example.com", name: "Admin User", role: "admin" },
+  { id: "user-2", email: "manager@example.com", name: "Manager User", role: "manager" },
+  { id: "user-3", email: "viewer@example.com", name: "Viewer User", role: "viewer" },
 ];
 
 export const MOCK_SUPPLIERS: Supplier[] = [
@@ -69,7 +69,7 @@ export const MOCK_PURCHASE_ORDERS: PurchaseOrder[] = [
     expectedDeliveryDate: new Date(2024, 6, 15).toISOString(),
     items: createMockItems(2),
     currency: "USD",
-    currencyRate: 2100.0, // Updated rate for USD to MMK (example)
+    currencyRate: 2100.0, 
     status: "Completed",
     payments: [
       { id: "payment-1-1", method: "KBZ Bank", amount: 150.75 }
@@ -117,12 +117,12 @@ export const MOCK_PURCHASE_ORDERS: PurchaseOrder[] = [
     createdAt: new Date(2024, 6, 5).toISOString(),
     updatedAt: new Date(2024, 6, 6).toISOString(),
   },
-  { // Adding a couple more for "recent" demo
+  { 
     id: "po-4",
     poNumber: "PO20240004",
     supplierId: "sup-1",
     supplierName: "Tech Solutions Inc.",
-    orderDate: new Date(2024, 6, 10).toISOString(), // More recent
+    orderDate: new Date(2024, 6, 10).toISOString(), 
     expectedDeliveryDate: new Date(2024, 6, 20).toISOString(),
     items: createMockItems(1),
     currency: "USD",
@@ -139,7 +139,7 @@ export const MOCK_PURCHASE_ORDERS: PurchaseOrder[] = [
     poNumber: "PO20240005",
     supplierId: "sup-2",
     supplierName: "Office Supplies Co.",
-    orderDate: new Date(2024, 6, 12).toISOString(), // Even more recent
+    orderDate: new Date(2024, 6, 12).toISOString(), 
     expectedDeliveryDate: new Date(2024, 6, 22).toISOString(),
     items: createMockItems(2),
     currency: "MMK",
@@ -156,11 +156,11 @@ export const MOCK_PURCHASE_ORDERS: PurchaseOrder[] = [
     poNumber: "PO20240006",
     supplierId: "sup-3",
     supplierName: "Global Components Ltd.",
-    orderDate: new Date(2024, 4, 15).toISOString(), // Older one
+    orderDate: new Date(2024, 4, 15).toISOString(), 
     expectedDeliveryDate: new Date(2024, 5, 1).toISOString(),
     items: createMockItems(4),
     currency: "USD",
-    currencyRate: 2050.0, // Slightly different rate for variety
+    currencyRate: 2050.0, 
     status: "Completed",
     payments: [{ id: "payment-6-1", method: "KBZ Bank", amount: 350.00 }],
     grandTotal: 0,

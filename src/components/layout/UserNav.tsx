@@ -15,6 +15,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { LogOut, User as UserIcon, Settings } from "lucide-react";
 import Link from "next/link";
+import { DEFAULT_AVATARS, DEFAULT_AVATAR_HINTS } from "@/lib/constants";
 
 export function UserNav() {
   const { user, logout } = useAuth();
@@ -31,12 +32,15 @@ export function UserNav() {
         .toUpperCase()
     : user.email ? user.email[0].toUpperCase() : "U";
 
+  const avatarSrc = user.avatarUrl || DEFAULT_AVATARS[user.role];
+  const avatarHint = user.avatarUrl ? "profile avatar" : DEFAULT_AVATAR_HINTS[user.role];
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-9 w-9 rounded-full">
           <Avatar className="h-9 w-9">
-            <AvatarImage src={user.avatarUrl || `https://placehold.co/100x100.png?text=${initials}`} alt={user.name || user.email || "User"} data-ai-hint="profile avatar" />
+            <AvatarImage src={avatarSrc} alt={user.name || user.email || "User"} data-ai-hint={avatarHint} />
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
         </Button>
@@ -56,13 +60,13 @@ export function UserNav() {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
-            <Link href="/profile" className="cursor-pointer"> {/* Assuming a /profile page could exist */}
+            <Link href="/profile" className="cursor-pointer">
               <UserIcon className="mr-2 h-4 w-4" />
               <span>Profile</span>
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link href="/settings" className="cursor-pointer"> {/* Assuming a /settings page could exist */}
+            <Link href="/settings" className="cursor-pointer">
               <Settings className="mr-2 h-4 w-4" />
               <span>Settings</span>
             </Link>
@@ -77,4 +81,3 @@ export function UserNav() {
     </DropdownMenu>
   );
 }
-

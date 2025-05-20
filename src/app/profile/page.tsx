@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DEFAULT_AVATARS, DEFAULT_AVATAR_HINTS } from "@/lib/constants";
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -22,6 +23,11 @@ export default function ProfilePage() {
     ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase()
     : user.email ? user.email[0].toUpperCase() : "U";
 
+  const avatarSrc = user.avatarUrl || DEFAULT_AVATARS[user.role];
+  // For the profile page's large avatar, we can still use a general hint or the role-specific one.
+  const avatarHint = user.avatarUrl ? "profile avatar large" : DEFAULT_AVATAR_HINTS[user.role] + " large";
+
+
   return (
     <AuthGuard allowedRoles={["admin", "manager", "viewer"]}>
       <MainAppLayout>
@@ -33,7 +39,7 @@ export default function ProfilePage() {
           <CardHeader>
             <div className="flex items-center space-x-4">
               <Avatar className="h-20 w-20">
-                <AvatarImage src={user.avatarUrl || `https://placehold.co/100x100.png?text=${initials}`} alt={user.name || user.email || "User"} data-ai-hint="profile avatar large" />
+                <AvatarImage src={avatarSrc} alt={user.name || user.email || "User"} data-ai-hint={avatarHint} />
                 <AvatarFallback className="text-3xl">{initials}</AvatarFallback>
               </Avatar>
               <div>
@@ -63,4 +69,3 @@ export default function ProfilePage() {
     </AuthGuard>
   );
 }
-

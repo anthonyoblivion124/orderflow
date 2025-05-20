@@ -15,12 +15,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { MoreHorizontal, PenSquare, Trash2, UserCircle } from "lucide-react";
+import { MoreHorizontal, PenSquare, Trash2 } from "lucide-react"; // Removed UserCircle as it's not used
 import type { User } from "@/types";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
+import { DEFAULT_AVATARS, DEFAULT_AVATAR_HINTS } from "@/lib/constants";
 
 interface UsersTableProps {
   users: User[];
@@ -84,69 +85,73 @@ export default function UsersTable({ users, onDelete, searchTerm, onSearchTermCh
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={user.avatarUrl || `https://placehold.co/80x80.png?text=${getInitials(user.name, user.email)}`} alt={getUserDisplayName(user)} data-ai-hint="avatar user" />
-                      <AvatarFallback>{getInitials(user.name, user.email)}</AvatarFallback>
-                    </Avatar>
-                  </TableCell>
-                  <TableCell className="font-medium">{user.name || "N/A"}</TableCell>
-                  <TableCell>{user.email || "N/A"}</TableCell>
-                  <TableCell>
-                    <Badge variant={user.role === 'admin' ? 'default' : 'secondary'} className="capitalize">
-                      {user.role}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <AlertDialog>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                             <Link href={`/users/${user.id}/edit`} className="cursor-pointer">
-                              <PenSquare className="mr-2 h-4 w-4" /> Edit
-                            </Link>
-                          </DropdownMenuItem>
-                          {currentUser && user.id !== currentUser.id && ( // Admin cannot delete self
-                            <AlertDialogTrigger asChild>
-                              <DropdownMenuItem
-                                className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
-                                onSelect={(e) => e.preventDefault()} 
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" /> Delete
-                              </DropdownMenuItem>
-                            </AlertDialogTrigger>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the user "{getUserDisplayName(user)}".
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDelete(user.id, getUserDisplayName(user))}
-                            className={buttonVariants({ variant: "destructive" })}
-                          >
-                            Yes, delete user
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {users.map((user) => {
+                const avatarSrc = user.avatarUrl || DEFAULT_AVATARS[user.role];
+                const avatarHint = user.avatarUrl ? "avatar user" : DEFAULT_AVATAR_HINTS[user.role];
+                return (
+                  <TableRow key={user.id}>
+                    <TableCell>
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={avatarSrc} alt={getUserDisplayName(user)} data-ai-hint={avatarHint} />
+                        <AvatarFallback>{getInitials(user.name, user.email)}</AvatarFallback>
+                      </Avatar>
+                    </TableCell>
+                    <TableCell className="font-medium">{user.name || "N/A"}</TableCell>
+                    <TableCell>{user.email || "N/A"}</TableCell>
+                    <TableCell>
+                      <Badge variant={user.role === 'admin' ? 'default' : 'secondary'} className="capitalize">
+                        {user.role}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <AlertDialog>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <span className="sr-only">Open menu</span>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                               <Link href={`/users/${user.id}/edit`} className="cursor-pointer">
+                                <PenSquare className="mr-2 h-4 w-4" /> Edit
+                              </Link>
+                            </DropdownMenuItem>
+                            {currentUser && user.id !== currentUser.id && ( // Admin cannot delete self
+                              <AlertDialogTrigger asChild>
+                                <DropdownMenuItem
+                                  className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
+                                  onSelect={(e) => e.preventDefault()} 
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                </DropdownMenuItem>
+                              </AlertDialogTrigger>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete the user "{getUserDisplayName(user)}".
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDelete(user.id, getUserDisplayName(user))}
+                              className={buttonVariants({ variant: "destructive" })}
+                            >
+                              Yes, delete user
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
@@ -155,4 +160,3 @@ export default function UsersTable({ users, onDelete, searchTerm, onSearchTermCh
     </Card>
   );
 }
-
