@@ -35,7 +35,7 @@ export type PaymentDetailFormData = z.infer<typeof paymentDetailSchema>;
 export const purchaseOrderSchema = z.object({
   supplierId: z.string().min(1, "Supplier is required."),
   orderDate: z.date({ required_error: "Order date is required."}),
-  expectedDeliveryDate: z.date({ required_error: "Expected delivery date is required."}),
+  // expectedDeliveryDate: z.date({ required_error: "Expected delivery date is required."}), // Removed
   items: z.array(purchaseOrderItemSchema).min(1, "At least one item is required."),
   currency: z.string().min(3, "Currency code must be 3 characters.").max(3, "Currency code must be 3 characters."),
   currencyRate: z.coerce.number().min(0.000001, "Currency rate must be a positive number."),
@@ -44,10 +44,11 @@ export const purchaseOrderSchema = z.object({
   }),
   payments: z.array(paymentDetailSchema).optional(),
   notes: z.string().max(500, "Notes cannot exceed 500 characters.").optional(),
-}).refine(data => data.expectedDeliveryDate >= data.orderDate, {
-  message: "Expected delivery date cannot be earlier than order date.",
-  path: ["expectedDeliveryDate"],
 });
+// .refine(data => data.expectedDeliveryDate >= data.orderDate, { // Removed refine
+//   message: "Expected delivery date cannot be earlier than order date.",
+//   path: ["expectedDeliveryDate"],
+// });
 
 export type PurchaseOrderFormData = z.infer<typeof purchaseOrderSchema>;
 
@@ -68,7 +69,6 @@ export const userManagementFormSchema = z.object({
   role: z.enum(USER_ROLES as [UserRole, ...UserRole[]], { // Cast USER_ROLES
     required_error: "User role is required.",
   }),
-  // avatarUrl: z.string().url("Invalid URL format for avatar.").optional().or(z.literal('')), // Removed
 });
 
 export type UserManagementFormData = z.infer<typeof userManagementFormSchema>;

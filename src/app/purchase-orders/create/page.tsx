@@ -47,7 +47,7 @@ export default function CreatePurchaseOrderPage() {
       supplierName,
       ...data,
       orderDate: data.orderDate.toISOString(),
-      expectedDeliveryDate: data.expectedDeliveryDate.toISOString(),
+      // expectedDeliveryDate: data.expectedDeliveryDate.toISOString(), // Removed
       items: data.items.map(item => ({
         ...item,
         id: `item-${Date.now()}-${Math.random()}`, 

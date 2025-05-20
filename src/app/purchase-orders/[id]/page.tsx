@@ -146,15 +146,12 @@ export default function ViewPurchaseOrderPage() {
             </div>
           </CardHeader>
           <CardContent className="p-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm"> {/* Changed md:grid-cols-3 to md:grid-cols-2 */}
               <div className="space-y-1">
                 <p className="text-muted-foreground flex items-center"><CalendarDays className="mr-2 h-4 w-4 text-accent"/>Order Date</p>
                 <p className="font-medium">{format(new Date(po.orderDate), "PPP")}</p>
               </div>
-              <div className="space-y-1">
-                <p className="text-muted-foreground flex items-center"><CalendarDays className="mr-2 h-4 w-4 text-accent"/>Expected Delivery</p>
-                <p className="font-medium">{format(new Date(po.expectedDeliveryDate), "PPP")}</p>
-              </div>
+              {/* Expected Delivery Date Removed */}
                <div className="space-y-1">
                 <p className="text-muted-foreground flex items-center"><DollarSign className="mr-2 h-4 w-4 text-accent"/>Currency Info</p>
                 <p className="font-medium">

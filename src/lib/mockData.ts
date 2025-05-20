@@ -66,7 +66,7 @@ export const MOCK_PURCHASE_ORDERS: PurchaseOrder[] = [
     supplierId: "sup-1",
     supplierName: "Tech Solutions Inc.",
     orderDate: new Date(2024, 6, 1).toISOString(),
-    expectedDeliveryDate: new Date(2024, 6, 15).toISOString(),
+    // expectedDeliveryDate: new Date(2024, 6, 15).toISOString(), // Removed
     items: createMockItems(2),
     currency: "USD",
     currencyRate: 2100.0, 
@@ -86,7 +86,7 @@ export const MOCK_PURCHASE_ORDERS: PurchaseOrder[] = [
     supplierId: "sup-2",
     supplierName: "Office Supplies Co.",
     orderDate: new Date(2024, 5, 20).toISOString(),
-    expectedDeliveryDate: new Date(2024, 6, 5).toISOString(),
+    // expectedDeliveryDate: new Date(2024, 6, 5).toISOString(), // Removed
     items: createMockItems(3),
     currency: "MMK",
     currencyRate: 1.0, 
@@ -103,7 +103,7 @@ export const MOCK_PURCHASE_ORDERS: PurchaseOrder[] = [
     supplierId: "sup-3",
     supplierName: "Global Components Ltd.",
     orderDate: new Date(2024, 6, 5).toISOString(),
-    expectedDeliveryDate: new Date(2024, 6, 25).toISOString(),
+    // expectedDeliveryDate: new Date(2024, 6, 25).toISOString(), // Removed
     items: createMockItems(1),
     currency: "MMK",
     currencyRate: 1.0, 
@@ -123,7 +123,7 @@ export const MOCK_PURCHASE_ORDERS: PurchaseOrder[] = [
     supplierId: "sup-1",
     supplierName: "Tech Solutions Inc.",
     orderDate: new Date(2024, 6, 10).toISOString(), 
-    expectedDeliveryDate: new Date(2024, 6, 20).toISOString(),
+    // expectedDeliveryDate: new Date(2024, 6, 20).toISOString(), // Removed
     items: createMockItems(1),
     currency: "USD",
     currencyRate: 2100.0,
@@ -140,7 +140,7 @@ export const MOCK_PURCHASE_ORDERS: PurchaseOrder[] = [
     supplierId: "sup-2",
     supplierName: "Office Supplies Co.",
     orderDate: new Date(2024, 6, 12).toISOString(), 
-    expectedDeliveryDate: new Date(2024, 6, 22).toISOString(),
+    // expectedDeliveryDate: new Date(2024, 6, 22).toISOString(), // Removed
     items: createMockItems(2),
     currency: "MMK",
     currencyRate: 1.0,
@@ -157,7 +157,7 @@ export const MOCK_PURCHASE_ORDERS: PurchaseOrder[] = [
     supplierId: "sup-3",
     supplierName: "Global Components Ltd.",
     orderDate: new Date(2024, 4, 15).toISOString(), 
-    expectedDeliveryDate: new Date(2024, 5, 1).toISOString(),
+    // expectedDeliveryDate: new Date(2024, 5, 1).toISOString(), // Removed
     items: createMockItems(4),
     currency: "USD",
     currencyRate: 2050.0, 

@@ -59,7 +59,7 @@ export default function EditPurchaseOrderPage() {
         ...MOCK_PURCHASE_ORDERS[poIndex],
         ...data,
         orderDate: data.orderDate.toISOString(),
-        expectedDeliveryDate: data.expectedDeliveryDate.toISOString(),
+        // expectedDeliveryDate: data.expectedDeliveryDate.toISOString(), // Removed
         items: data.items.map(item => ({
             ...item,
             id: item.id || `item-${Date.now()}-${Math.random()}`, 

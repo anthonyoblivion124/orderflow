@@ -96,7 +96,7 @@ export default function PurchaseOrdersTable({ purchaseOrders, onDelete, searchTe
                 <TableHead>PO Number</TableHead>
                 {!minimal && <TableHead>Supplier</TableHead>}
                 <TableHead>Order Date</TableHead>
-                <TableHead>Expected Delivery</TableHead>
+                {/* Expected Delivery Column Removed */}
                 <TableHead>Status</TableHead>
                 {!isViewer && <TableHead className="text-right">Total Amount</TableHead>}
                 {!minimal && <TableHead className="text-right w-[100px]">Actions</TableHead>}
@@ -116,7 +116,7 @@ export default function PurchaseOrdersTable({ purchaseOrders, onDelete, searchTe
                   </TableCell>
                   {!minimal && <TableCell>{po.supplierName}</TableCell>}
                   <TableCell>{format(new Date(po.orderDate), "dd MMM yyyy")}</TableCell>
-                  <TableCell>{format(new Date(po.expectedDeliveryDate), "dd MMM yyyy")}</TableCell>
+                  {/* Expected Delivery Cell Removed */}
                   <TableCell>
                     <Badge variant={getStatusBadgeVariant(po.status)}>{po.status}</Badge>
                   </TableCell>

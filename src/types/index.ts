@@ -43,7 +43,7 @@ export interface PurchaseOrder {
   supplierId: string;
   supplierName?: string;
   orderDate: string;
-  expectedDeliveryDate: string;
+  // expectedDeliveryDate: string; // Removed
   items: PurchaseOrderItem[];
   currency: string;
   currencyRate: number;

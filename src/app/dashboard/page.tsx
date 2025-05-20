@@ -10,7 +10,7 @@ import { DollarSign, ListChecks, ShoppingCart, Award } from "lucide-react";
 import { MOCK_PURCHASE_ORDERS } from "@/lib/mockData";
 import type { PurchaseOrder } from "@/types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import Link from "next/link"; // Keep for other links if any, but not for row navigation
+// import Link from "next/link"; // Keep for other links if any, but not for row navigation
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
@@ -225,4 +225,3 @@ export default function DashboardPage() {
     </AuthGuard>
   );
 }
-

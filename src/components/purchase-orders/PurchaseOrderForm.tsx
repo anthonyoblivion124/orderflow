@@ -44,7 +44,7 @@ export default function PurchaseOrderForm({ onSubmit, initialData, suppliers, is
     ? {
         ...initialData,
         orderDate: new Date(initialData.orderDate),
-        expectedDeliveryDate: new Date(initialData.expectedDeliveryDate),
+        // expectedDeliveryDate: new Date(initialData.expectedDeliveryDate), // Removed
         items: initialData.items.map(item => ({ 
             id: item.id,
             itemCode: item.itemCode || "",
@@ -61,7 +61,7 @@ export default function PurchaseOrderForm({ onSubmit, initialData, suppliers, is
     : {
         supplierId: "",
         orderDate: new Date(),
-        expectedDeliveryDate: new Date(new Date().setDate(new Date().getDate() + 7)), 
+        // expectedDeliveryDate: new Date(new Date().setDate(new Date().getDate() + 7)), // Removed
         items: [{ itemCode: "", name: "", quantity: 1, price: 0 }],
         currency: "MMK", 
         currencyRate: 1.0, 
@@ -90,7 +90,7 @@ export default function PurchaseOrderForm({ onSubmit, initialData, suppliers, is
        form.reset({ 
         supplierId: "",
         orderDate: new Date(),
-        expectedDeliveryDate: new Date(new Date().setDate(new Date().getDate() + 7)),
+        // expectedDeliveryDate: new Date(new Date().setDate(new Date().getDate() + 7)), // Removed
         items: [{ itemCode: "", name: "", quantity: 1, price: 0 }],
         currency: "MMK", 
         currencyRate: 1.0, 
@@ -193,35 +193,7 @@ export default function PurchaseOrderForm({ onSubmit, initialData, suppliers, is
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="expectedDeliveryDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Expected Delivery Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* Expected Delivery Date Field Removed */}
               </div>
             </div>
 
