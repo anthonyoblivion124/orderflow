@@ -8,7 +8,7 @@ import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { userManagementFormSchema, type UserManagementFormData } from "@/lib/schemas";
@@ -83,8 +83,8 @@ export default function UserForm({ onSubmit, initialData, isSubmitting }: UserFo
                   <FormControl>
                     <Input type="email" placeholder="e.g., user@example.com" {...field} disabled={!!initialData} />
                   </FormControl>
-                  {initialData && <FormMessage>Email cannot be changed for existing users.</FormMessage>}
-                  {!initialData && <FormMessage />}
+                  {initialData && <FormDescription className="text-xs">Email cannot be changed for existing users.</FormDescription>}
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -94,8 +94,8 @@ export default function UserForm({ onSubmit, initialData, isSubmitting }: UserFo
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Role</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
+                  <Select
+                    onValueChange={field.onChange}
                     defaultValue={field.value}
                     disabled={isEditingSelf && isCurrentUserAdmin} // Admin cannot change their own role
                   >
@@ -112,6 +112,9 @@ export default function UserForm({ onSubmit, initialData, isSubmitting }: UserFo
                       ))}
                     </SelectContent>
                   </Select>
+                  <FormDescription>
+                    Determines the user's access level and permissions within the application.
+                  </FormDescription>
                   {(isEditingSelf && isCurrentUserAdmin) && <FormMessage>Admins cannot change their own role.</FormMessage>}
                   <FormMessage />
                 </FormItem>
