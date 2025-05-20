@@ -7,10 +7,10 @@ import MainAppLayout from "@/components/layout/MainAppLayout";
 import PageHeader from "@/components/shared/PageHeader";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
-import { MOCK_USERS, MOCK_ROLE_PERMISSIONS, updateMockRolePermission } from "@/lib/mockData";
+import { MOCK_USERS, MOCK_ROLE_PERMISSIONS } from "@/lib/mockData"; // Removed updateMockRolePermission as it's handled by direct mutation on save
 import UsersTable from "@/components/users/UsersTable";
 import { useState, useEffect } from "react";
-import type { User, UserRole } from "@/types";
+import type { User, UserRole, RolePermissions } from "@/types";
 import FullScreenLoader from "@/components/FullScreenLoader"; 
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -24,8 +24,10 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  // Local state for role permissions to trigger re-renders
-  const [rolePermissions, setRolePermissions] = useState(JSON.parse(JSON.stringify(MOCK_ROLE_PERMISSIONS))); 
+  // Local state for role permissions to trigger re-renders of switches and hold pending changes
+  const [pendingRolePermissions, setPendingRolePermissions] = useState<RolePermissions>(() => 
+    JSON.parse(JSON.stringify(MOCK_ROLE_PERMISSIONS)) // Deep copy for initial state
+  ); 
   const { toast } = useToast();
   const { user: currentUser } = useAuth();
 
@@ -33,7 +35,8 @@ export default function UsersPage() {
   useEffect(() => {
     setTimeout(() => {
       setUsers(MOCK_USERS);
-      setRolePermissions(JSON.parse(JSON.stringify(MOCK_ROLE_PERMISSIONS))); // Ensure fresh copy
+      // Initialize pending permissions from the global mock data source on mount
+      setPendingRolePermissions(JSON.parse(JSON.stringify(MOCK_ROLE_PERMISSIONS))); 
       setIsLoading(false);
     }, 300); 
   }, []);
@@ -59,15 +62,37 @@ export default function UsersPage() {
     });
   };
 
-  const handlePermissionChange = (role: UserRole, featureId: string, enabled: boolean) => {
-    if (role === 'admin') return; // Should not happen with UI controls but good check
-    updateMockRolePermission(role, featureId, enabled);
-    setRolePermissions(JSON.parse(JSON.stringify(MOCK_ROLE_PERMISSIONS))); // Update local state to re-render
-    toast({
-      title: "Permission Updated",
-      description: `Permission for ${featureId} for role ${role} has been ${enabled ? 'enabled' : 'disabled'}.`
+  const handlePermissionChange = (role: Exclude<UserRole, 'admin'>, featureId: string, enabled: boolean) => {
+    setPendingRolePermissions(prev => {
+      const newPermissions = JSON.parse(JSON.stringify(prev)); // Deep copy to ensure state update
+      if (!newPermissions[role]) {
+        newPermissions[role] = {};
+      }
+      newPermissions[role]![featureId] = enabled;
+      return newPermissions;
     });
+    // Individual toast removed, will be shown on save
   };
+
+  const handleSavePermissions = () => {
+    // Update the global MOCK_ROLE_PERMISSIONS with the pending changes
+    manageableRoles.forEach(role => {
+      const roleKey = role as Exclude<UserRole, 'admin'>;
+      if (MOCK_ROLE_PERMISSIONS[roleKey] && pendingRolePermissions[roleKey]) {
+        MOCK_ROLE_PERMISSIONS[roleKey] = { ...pendingRolePermissions[roleKey] };
+      } else if (pendingRolePermissions[roleKey]) { // If role didn't exist in MOCK_ROLE_PERMISSIONS but does in pending
+         MOCK_ROLE_PERMISSIONS[roleKey] = { ...pendingRolePermissions[roleKey] };
+      }
+    });
+  
+    toast({
+      title: "Permissions Saved",
+      description: "Role feature permissions have been successfully updated.",
+    });
+    // Optionally, after saving, you might want to re-sync pendingRolePermissions if MOCK_ROLE_PERMISSIONS could be changed elsewhere.
+    // For this mock setup, it's generally fine as AuthContext reads the mutated MOCK_ROLE_PERMISSIONS.
+  };
+
 
   const filteredUsers = users.filter(user =>
     (user.name && user.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -133,7 +158,7 @@ export default function UsersPage() {
                         </Label>
                         <Switch
                           id={`${role}-${feature.id}`}
-                          checked={rolePermissions[role]?.[feature.id] || false}
+                          checked={pendingRolePermissions[role]?.[feature.id] || false}
                           onCheckedChange={(checked) => handlePermissionChange(role, feature.id, checked)}
                           aria-label={`Toggle ${feature.label} for ${role}`}
                         />
@@ -142,6 +167,9 @@ export default function UsersPage() {
                   </div>
                 </div>
               ))}
+              <div className="mt-6 flex justify-end border-t pt-4">
+                <Button onClick={handleSavePermissions}>Save Permissions</Button>
+              </div>
             </CardContent>
           </Card>
         )}
