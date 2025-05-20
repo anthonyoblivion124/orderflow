@@ -12,16 +12,45 @@ import type { PurchaseOrder } from "@/types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-
-// Mock data for dashboard stats
-const stats = [
-  { title: "Total Purchase Orders", value: "1,234", icon: ShoppingCart, color: "text-primary" },
-  { title: "Pending Approvals", value: "56", icon: ListChecks, color: "text-yellow-500" },
-  { title: "Total Spent (This Month)", value: "12,567,000 MMK", icon: DollarSign, color: "text-destructive" },
-];
+import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const [dashboardStats, setDashboardStats] = useState([
+    { title: "Total Purchase Orders", value: "0", icon: ShoppingCart, color: "text-primary" },
+    { title: "Pending Approvals", value: "0", icon: ListChecks, color: "text-yellow-500" },
+    { title: "Total Spent (This Month)", value: "0 MMK", icon: DollarSign, color: "text-destructive" },
+  ]);
+
+  useEffect(() => {
+    // Calculate dynamic stats
+    const totalPurchaseOrdersCount = MOCK_PURCHASE_ORDERS.length;
+    const pendingApprovalsCount = MOCK_PURCHASE_ORDERS.filter(po => po.status === "Pending").length;
+
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+
+    let totalSpentThisMonthInMMK = 0;
+    MOCK_PURCHASE_ORDERS.forEach(po => {
+      const orderDate = new Date(po.orderDate);
+      if (orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear) {
+        if (po.currency === "MMK") {
+          totalSpentThisMonthInMMK += po.grandTotal;
+        } else {
+          totalSpentThisMonthInMMK += po.grandTotal * (po.currencyRate || 1); // Assume rate 1 if not specified
+        }
+      }
+    });
+
+    setDashboardStats([
+      { title: "Total Purchase Orders", value: totalPurchaseOrdersCount.toLocaleString('en-US'), icon: ShoppingCart, color: "text-primary" },
+      { title: "Pending Approvals", value: pendingApprovalsCount.toLocaleString('en-US'), icon: ListChecks, color: "text-yellow-500" },
+      { title: "Total Spent (This Month)", value: `${Math.round(totalSpentThisMonthInMMK).toLocaleString('en-US')} MMK`, icon: DollarSign, color: "text-destructive" },
+    ]);
+
+  }, []);
+
 
   // Get recent purchase orders (e.g., latest 5 by orderDate)
   const recentPOs = MOCK_PURCHASE_ORDERS
@@ -41,7 +70,7 @@ export default function DashboardPage() {
         />
         
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {stats.map((stat, index) => (
+          {dashboardStats.map((stat, index) => (
             <Card key={index} className="shadow-lg hover:shadow-xl transition-shadow duration-200">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
