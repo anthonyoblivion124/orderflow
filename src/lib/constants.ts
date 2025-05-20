@@ -1,4 +1,5 @@
-import type { UserRole } from "@/types";
+
+import type { UserRole, PurchaseOrderStatus } from "@/types";
 import { LayoutDashboard, ShoppingCart, Users, Settings, Building } from "lucide-react";
 
 export const APP_NAME = "OrderFlow";
@@ -19,7 +20,9 @@ export const CURRENCIES = [
   { code: "EUR", name: "Euro" },
   { code: "GBP", name: "British Pound" },
   { code: "JPY", name: "Japanese Yen" },
-  { code: "CAD", name: "Canadian Dollar" },
   { code: "AUD", name: "Australian Dollar" },
   { code: "SGD", name: "Singapore Dollar" },
+  { code: "THB", name: "Thai Baht" },
+  { code: "VND", name: "Vietnamese Dong" },
 ];
+
