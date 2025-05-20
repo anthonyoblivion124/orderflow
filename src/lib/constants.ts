@@ -1,6 +1,6 @@
 
 import type { UserRole, PurchaseOrderStatus } from "@/types";
-import { LayoutDashboard, ShoppingCart, Users, Settings, Building, CreditCard } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Users, Building, CreditCard } from "lucide-react"; // Removed Settings icon
 
 export const APP_NAME = "OrderFlow";
 export const APP_DESCRIPTION = "Manage your purchase orders efficiently.";
@@ -25,7 +25,7 @@ export const NAV_LINKS = [
   { href: "/suppliers", label: "Suppliers", icon: Building, roles: USER_ROLES },
   { href: "/payment-methods", label: "Payment Methods", icon: CreditCard, roles: ["admin", "manager"] },
   { href: "/users", label: "User Management", icon: Users, roles: ["admin"] },
-  // { href: "/settings", label: "Settings", icon: Settings, roles: ["admin", "manager"] }, // Example for role-specific link
+  // { href: "/settings", label: "Settings", icon: Settings, roles: ["admin", "manager"] }, // Removed settings link
 ];
 
 export const PO_STATUSES: PurchaseOrderStatus[] = ["Pending", "Payment Required", "Completed"];
