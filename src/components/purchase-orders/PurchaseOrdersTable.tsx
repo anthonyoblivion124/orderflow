@@ -13,14 +13,14 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, PenSquare, Trash2, Copy } from "lucide-react"; // Removed Eye icon
+import { MoreHorizontal, PenSquare, Trash2, Copy } from "lucide-react";
 import type { PurchaseOrder } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth"; // Import useAuth
 
 interface PurchaseOrdersTableProps {
   purchaseOrders: PurchaseOrder[];
@@ -31,14 +31,17 @@ interface PurchaseOrdersTableProps {
 }
 
 export default function PurchaseOrdersTable({ purchaseOrders, onDelete, searchTerm, onSearchTermChange, minimal = false }: PurchaseOrdersTableProps) {
-  const router = useRouter(); // Initialize router
+  const router = useRouter();
   const { toast } = useToast();
-  const { hasRole } = useAuth();
-  const canEdit = hasRole(['admin', 'manager']);
-  const canDelete = hasRole(['admin']);
+  const { user, hasRole, hasFeaturePermission } = useAuth(); // Get user role
+  
+  const isViewer = user?.role === 'viewer';
+  const canEditPO = (status: PurchaseOrder["status"]) => hasFeaturePermission("managePurchaseOrders") && status === "Pending";
+  const canDeletePO = (status: PurchaseOrder["status"]) => hasRole(["admin"]) && status === "Pending";
+
 
   const copyToClipboard = (text: string, type: string, event: React.MouseEvent) => {
-    event.stopPropagation(); // Prevent row click when copying
+    event.stopPropagation(); 
     navigator.clipboard.writeText(text).then(() => {
       toast({ title: `${type} Copied`, description: `${text} copied to clipboard.` });
     }).catch(err => {
@@ -74,7 +77,10 @@ export default function PurchaseOrdersTable({ purchaseOrders, onDelete, searchTe
         )}
         {purchaseOrders.length === 0 && !searchTerm && !minimal && (
            <div className="text-center p-10 text-muted-foreground">
-            No purchase orders found. <Link href="/purchase-orders/create" className="text-primary hover:underline">Create your first PO</Link>.
+            No purchase orders found. 
+            {hasFeaturePermission("managePurchaseOrders") && 
+              <Link href="/purchase-orders/create" className="text-primary hover:underline"> Create your first PO</Link>
+            }.
           </div>
         )}
          {purchaseOrders.length === 0 && searchTerm && !minimal && (
@@ -92,7 +98,7 @@ export default function PurchaseOrdersTable({ purchaseOrders, onDelete, searchTe
                 <TableHead>Order Date</TableHead>
                 <TableHead>Expected Delivery</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Total Amount</TableHead>
+                {!isViewer && <TableHead className="text-right">Total Amount</TableHead>}
                 {!minimal && <TableHead className="text-right w-[100px]">Actions</TableHead>}
               </TableRow>
             </TableHeader>
@@ -114,12 +120,14 @@ export default function PurchaseOrdersTable({ purchaseOrders, onDelete, searchTe
                   <TableCell>
                     <Badge variant={getStatusBadgeVariant(po.status)}>{po.status}</Badge>
                   </TableCell>
-                  <TableCell className="text-right">
-                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: po.currency }).format(po.grandTotal)}
-                    <span className="text-xs text-muted-foreground ml-1">({po.currency})</span>
-                  </TableCell>
+                  {!isViewer && (
+                    <TableCell className="text-right">
+                      {new Intl.NumberFormat('en-US', { style: 'currency', currency: po.currency }).format(po.grandTotal)}
+                      <span className="text-xs text-muted-foreground ml-1">({po.currency})</span>
+                    </TableCell>
+                  )}
                   {!minimal && (
-                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()} /* Prevent row click when interacting with dropdown */>
+                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0">
@@ -128,15 +136,14 @@ export default function PurchaseOrdersTable({ purchaseOrders, onDelete, searchTe
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        {/* View action is now handled by row click */}
-                        {canEdit && po.status === "Pending" && (
+                        {canEditPO(po.status) && (
                         <DropdownMenuItem asChild>
                           <Link href={`/purchase-orders/${po.id}/edit`} className="cursor-pointer">
                             <PenSquare className="mr-2 h-4 w-4" /> Edit
                           </Link>
                         </DropdownMenuItem>
                         )}
-                        {canDelete && po.status === "Pending" && (
+                        {canDeletePO(po.status) && (
                         <DropdownMenuItem onClick={() => onDelete(po.id)} className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
                           <Trash2 className="mr-2 h-4 w-4" /> Delete
                         </DropdownMenuItem>
