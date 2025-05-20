@@ -2,6 +2,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation"; // Import useRouter
 import {
   Table,
   TableBody,
@@ -12,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Eye, MoreHorizontal, PenSquare, Trash2, Copy } from "lucide-react";
+import { MoreHorizontal, PenSquare, Trash2, Copy } from "lucide-react"; // Removed Eye icon
 import type { PurchaseOrder } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -30,12 +31,14 @@ interface PurchaseOrdersTableProps {
 }
 
 export default function PurchaseOrdersTable({ purchaseOrders, onDelete, searchTerm, onSearchTermChange, minimal = false }: PurchaseOrdersTableProps) {
+  const router = useRouter(); // Initialize router
   const { toast } = useToast();
   const { hasRole } = useAuth();
   const canEdit = hasRole(['admin', 'manager']);
   const canDelete = hasRole(['admin']);
 
-  const copyToClipboard = (text: string, type: string) => {
+  const copyToClipboard = (text: string, type: string, event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent row click when copying
     navigator.clipboard.writeText(text).then(() => {
       toast({ title: `${type} Copied`, description: `${text} copied to clipboard.` });
     }).catch(err => {
@@ -46,16 +49,15 @@ export default function PurchaseOrdersTable({ purchaseOrders, onDelete, searchTe
   const getStatusBadgeVariant = (status: PurchaseOrder["status"]) => {
     switch (status) {
       case "Completed":
-        return "default"; // bg-primary
+        return "default"; 
       case "Pending":
-        return "secondary"; // bg-secondary (light blue)
+        return "secondary"; 
       case "Payment Required":
-        return "outline"; // uses accent color for border if themed
+        return "outline"; 
       default:
         return "secondary";
     }
   };
-
 
   return (
     <Card className="shadow-lg">
@@ -96,9 +98,13 @@ export default function PurchaseOrdersTable({ purchaseOrders, onDelete, searchTe
             </TableHeader>
             <TableBody>
               {purchaseOrders.map((po) => (
-                <TableRow key={po.id}>
+                <TableRow 
+                  key={po.id} 
+                  onClick={() => router.push(`/purchase-orders/${po.id}`)}
+                  className="cursor-pointer hover:bg-muted/50"
+                >
                   <TableCell className="font-medium">
-                    <Button variant="link" className="p-0 h-auto" onClick={() => copyToClipboard(po.poNumber, "PO Number")}>
+                    <Button variant="link" className="p-0 h-auto" onClick={(e) => copyToClipboard(po.poNumber, "PO Number", e)}>
                       {po.poNumber} <Copy className="ml-2 h-3 w-3" />
                     </Button>
                   </TableCell>
@@ -113,7 +119,7 @@ export default function PurchaseOrdersTable({ purchaseOrders, onDelete, searchTe
                     <span className="text-xs text-muted-foreground ml-1">({po.currency})</span>
                   </TableCell>
                   {!minimal && (
-                  <TableCell className="text-right">
+                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()} /* Prevent row click when interacting with dropdown */>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0">
@@ -122,11 +128,7 @@ export default function PurchaseOrdersTable({ purchaseOrders, onDelete, searchTe
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link href={`/purchase-orders/${po.id}`} className="cursor-pointer">
-                            <Eye className="mr-2 h-4 w-4" /> View
-                          </Link>
-                        </DropdownMenuItem>
+                        {/* View action is now handled by row click */}
                         {canEdit && po.status === "Pending" && (
                         <DropdownMenuItem asChild>
                           <Link href={`/purchase-orders/${po.id}/edit`} className="cursor-pointer">

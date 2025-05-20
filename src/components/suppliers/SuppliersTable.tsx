@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import * as React from "react";
+import { useRouter } from "next/navigation"; // Import useRouter
 import {
   Table,
   TableBody,
@@ -14,7 +15,7 @@ import {
 import { Button, buttonVariants } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Eye, MoreHorizontal, PenSquare, Trash2 } from "lucide-react";
+import { MoreHorizontal, PenSquare, Trash2 } from "lucide-react"; // Removed Eye icon
 import type { Supplier } from "@/types";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,7 @@ interface SuppliersTableProps {
 }
 
 export default function SuppliersTable({ suppliers, onDelete, searchTerm, onSearchTermChange }: SuppliersTableProps) {
+  const router = useRouter(); // Initialize router
   const { hasRole } = useAuth();
   const { toast } = useToast();
   const canEdit = hasRole(['admin', 'manager']);
@@ -79,13 +81,17 @@ export default function SuppliersTable({ suppliers, onDelete, searchTerm, onSear
             </TableHeader>
             <TableBody>
               {suppliers.map((supplier) => (
-                <TableRow key={supplier.id}>
+                <TableRow 
+                  key={supplier.id}
+                  onClick={() => router.push(`/suppliers/${supplier.id}`)}
+                  className="cursor-pointer hover:bg-muted/50"
+                >
                   <TableCell className="font-medium">{supplier.name}</TableCell>
                   <TableCell>{supplier.contactPerson}</TableCell>
                   <TableCell>{supplier.email}</TableCell>
                   <TableCell>{supplier.phone}</TableCell>
                   <TableCell>{format(new Date(supplier.createdAt), "dd MMM yyyy")}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()} /* Prevent row click for dropdown */>
                     <AlertDialog>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -95,11 +101,7 @@ export default function SuppliersTable({ suppliers, onDelete, searchTerm, onSear
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link href={`/suppliers/${supplier.id}`} className="cursor-pointer">
-                              <Eye className="mr-2 h-4 w-4" /> View
-                            </Link>
-                          </DropdownMenuItem>
+                          {/* View action is now handled by row click */}
                           {canEdit && (
                           <DropdownMenuItem asChild>
                              <Link href={`/suppliers/${supplier.id}/edit`} className="cursor-pointer">
@@ -111,7 +113,7 @@ export default function SuppliersTable({ suppliers, onDelete, searchTerm, onSear
                             <AlertDialogTrigger asChild>
                               <DropdownMenuItem
                                 className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
-                                onSelect={(e) => e.preventDefault()} // Prevents DropdownMenu from closing
+                                onSelect={(e) => e.preventDefault()} 
                               >
                                 <Trash2 className="mr-2 h-4 w-4" /> Delete
                               </DropdownMenuItem>

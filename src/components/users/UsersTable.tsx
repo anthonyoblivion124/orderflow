@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import * as React from "react";
+import { useRouter } from "next/navigation"; // Import useRouter
 import {
   Table,
   TableBody,
@@ -15,7 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { MoreHorizontal, PenSquare, Trash2 } from "lucide-react"; // Removed UserCircle as it's not used
+import { MoreHorizontal, PenSquare, Trash2 } from "lucide-react";
 import type { User } from "@/types";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,7 +32,8 @@ interface UsersTableProps {
 }
 
 export default function UsersTable({ users, onDelete, searchTerm, onSearchTermChange }: UsersTableProps) {
-  const { user: currentUser } = useAuth(); // For checking if the user is deleting self
+  const router = useRouter(); // Initialize router
+  const { user: currentUser } = useAuth(); 
 
   const handleDelete = (userId: string, userNameOrId: string) => {
     onDelete(userId, userNameOrId);
@@ -41,14 +43,14 @@ export default function UsersTable({ users, onDelete, searchTerm, onSearchTermCh
     if (name) {
       return name.split(" ").map((n) => n[0]).join("").toUpperCase();
     }
-    if (email) { // email is now guaranteed
+    if (email) { 
       return email[0].toUpperCase();
     }
-    return "U"; // Should not be reached if email is always present
+    return "U"; 
   };
 
   const getUserDisplayName = (user: User): string => {
-    return user.name || user.email; // Email is always present
+    return user.name || user.email; 
   };
 
   return (
@@ -89,7 +91,11 @@ export default function UsersTable({ users, onDelete, searchTerm, onSearchTermCh
                 const avatarSrc = user.avatarUrl || DEFAULT_AVATARS[user.role];
                 const avatarHint = user.avatarUrl ? "avatar user" : DEFAULT_AVATAR_HINTS[user.role];
                 return (
-                  <TableRow key={user.id}>
+                  <TableRow 
+                    key={user.id}
+                    onClick={() => router.push(`/users/${user.id}/edit`)}
+                    className="cursor-pointer hover:bg-muted/50"
+                  >
                     <TableCell>
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={avatarSrc} alt={getUserDisplayName(user)} data-ai-hint={avatarHint} />
@@ -103,7 +109,7 @@ export default function UsersTable({ users, onDelete, searchTerm, onSearchTermCh
                         {user.role}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()} /* Prevent row click for dropdown */ >
                       <AlertDialog>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -118,7 +124,7 @@ export default function UsersTable({ users, onDelete, searchTerm, onSearchTermCh
                                 <PenSquare className="mr-2 h-4 w-4" /> Edit
                               </Link>
                             </DropdownMenuItem>
-                            {currentUser && user.id !== currentUser.id && ( // Admin cannot delete self
+                            {currentUser && user.id !== currentUser.id && ( 
                               <AlertDialogTrigger asChild>
                                 <DropdownMenuItem
                                   className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"

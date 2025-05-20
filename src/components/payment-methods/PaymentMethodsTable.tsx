@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import * as React from "react";
+import { useRouter } from "next/navigation"; // Import useRouter
 import {
   Table,
   TableBody,
@@ -30,14 +31,13 @@ interface PaymentMethodsTableProps {
 }
 
 export default function PaymentMethodsTable({ paymentMethods, onDelete, searchTerm, onSearchTermChange }: PaymentMethodsTableProps) {
+  const router = useRouter(); // Initialize router
   const { hasRole } = useAuth();
   const { toast } = useToast();
-  // For payment methods, typically admin/manager roles handle this configuration
   const canManage = hasRole(['admin', 'manager']); 
 
   const handleDelete = (methodId: string, methodName: string) => {
-    onDelete(methodId, methodName); // The actual deletion logic is in the page component
-    // Toast is handled in page component after successful deletion from mockData
+    onDelete(methodId, methodName); 
   };
 
   return (
@@ -69,26 +69,21 @@ export default function PaymentMethodsTable({ paymentMethods, onDelete, searchTe
                 <TableHead>Name</TableHead>
                 <TableHead>Added On</TableHead>
                 <TableHead>Last Updated</TableHead>
-                {/* <TableHead>Status</TableHead> // If isActive field is added */}
                 {canManage && <TableHead className="text-right w-[100px]">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {paymentMethods.map((method) => (
-                <TableRow key={method.id}>
+                <TableRow 
+                  key={method.id}
+                  onClick={() => canManage && router.push(`/payment-methods/${method.id}/edit`)} // Only navigate if canManage
+                  className={canManage ? "cursor-pointer hover:bg-muted/50" : ""}
+                >
                   <TableCell className="font-medium">{method.name}</TableCell>
                   <TableCell>{format(new Date(method.createdAt), "dd MMM yyyy")}</TableCell>
                   <TableCell>{format(new Date(method.updatedAt), "dd MMM yyyy")}</TableCell>
-                  {/* 
-                  TableCell for isActive status if implemented:
-                  <TableCell>
-                    <Badge variant={method.isActive ? "default" : "secondary"}>
-                      {method.isActive ? "Active" : "Inactive"}
-                    </Badge>
-                  </TableCell> 
-                  */}
                   {canManage && (
-                  <TableCell className="text-right">
+                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()} /* Prevent row click for dropdown */>
                     <AlertDialog>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -106,7 +101,7 @@ export default function PaymentMethodsTable({ paymentMethods, onDelete, searchTe
                           <AlertDialogTrigger asChild>
                             <DropdownMenuItem
                               className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
-                              onSelect={(e) => e.preventDefault()} // Prevents DropdownMenu from closing
+                              onSelect={(e) => e.preventDefault()} 
                             >
                               <Trash2 className="mr-2 h-4 w-4" /> Delete
                             </DropdownMenuItem>
