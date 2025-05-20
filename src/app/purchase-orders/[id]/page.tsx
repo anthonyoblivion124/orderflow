@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { MOCK_PURCHASE_ORDERS, MOCK_SUPPLIERS } from "@/lib/mockData";
 import type { PurchaseOrder, Supplier } from "@/types";
-import { ArrowLeft, Edit, Printer, DollarSign, CalendarDays, Truck, Info, CheckCircle, XCircle, Settings2, FileText } from "lucide-react";
+import { ArrowLeft, Edit, Printer, DollarSign, CalendarDays, Truck, Info, CheckCircle, XCircle, Settings2, FileText, CreditCard } from "lucide-react";
 import FullScreenLoader from "@/components/FullScreenLoader";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
@@ -95,6 +95,9 @@ export default function ViewPurchaseOrderPage() {
     );
   }
 
+  const totalPaid = po.payments?.reduce((sum, payment) => sum + payment.amount, 0) || 0;
+  const amountDue = po.grandTotal - totalPaid;
+
   return (
     <AuthGuard allowedRoles={["admin", "manager", "viewer"]}>
       <MainAppLayout>
@@ -106,7 +109,6 @@ export default function ViewPurchaseOrderPage() {
               <Button variant="outline" asChild>
                 <Link href="/purchase-orders"><ArrowLeft className="mr-2 h-4 w-4"/> Back to List</Link>
               </Button>
-              {/* <Button variant="outline"><Printer className="mr-2 h-4 w-4" /> Print PO</Button> */}
               {canEditPO(po.status) && (
               <Button asChild>
                 <Link href={`/purchase-orders/${po.id}/edit`}>
@@ -185,12 +187,50 @@ export default function ViewPurchaseOrderPage() {
                     <p className="text-lg font-semibold text-foreground">
                         {new Intl.NumberFormat('en-US', { style: 'currency', currency: po.currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(po.grandTotal)}
                     </p>
-                    {/* Add Tax, Shipping, etc. if needed */}
                     <p className="text-xl font-bold text-primary mt-1">
                         Grand Total: {new Intl.NumberFormat('en-US', { style: 'currency', currency: po.currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(po.grandTotal)}
                     </p>
                 </div>
             </div>
+
+            {po.payments && po.payments.length > 0 && (
+              <>
+                <Separator />
+                <div>
+                  <h3 className="text-lg font-semibold mb-3 text-foreground flex items-center">
+                    <CreditCard className="mr-2 h-5 w-5 text-accent" /> Payment Details
+                  </h3>
+                  <div className="overflow-x-auto border rounded-md">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Payment Method</TableHead>
+                          <TableHead className="text-right">Amount Paid</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {po.payments.map((payment) => (
+                          <TableRow key={payment.id}>
+                            <TableCell className="font-medium">{payment.method}</TableCell>
+                            <TableCell className="text-right font-semibold">
+                              {new Intl.NumberFormat('en-US', { style: 'currency', currency: po.currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(payment.amount)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  <div className="mt-4 text-right space-y-1">
+                     <p className="text-md font-medium">
+                        Total Paid: {new Intl.NumberFormat('en-US', { style: 'currency', currency: po.currency }).format(totalPaid)}
+                     </p>
+                     <p className={`text-md font-semibold ${amountDue > 0 ? 'text-destructive' : 'text-green-600'}`}>
+                        Amount Due: {new Intl.NumberFormat('en-US', { style: 'currency', currency: po.currency }).format(amountDue)}
+                     </p>
+                  </div>
+                </div>
+              </>
+            )}
             
             {po.notes && (
               <>

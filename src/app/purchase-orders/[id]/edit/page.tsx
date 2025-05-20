@@ -28,20 +28,19 @@ export default function EditPurchaseOrderPage() {
 
   useEffect(() => {
     if (id) {
-      // Simulate fetching data
       setTimeout(() => {
         const foundPO = MOCK_PURCHASE_ORDERS.find(p => p.id === id);
         if (foundPO) {
-          if (foundPO.status !== "Pending") { // Only "Pending" POs can be edited
+          if (foundPO.status !== "Pending") { 
              toast({ title: "Edit Not Allowed", description: `PO in '${foundPO.status}' status cannot be edited.`, variant: "destructive"});
-             router.push(`/purchase-orders/${id}`); // Redirect to view page
+             router.push(`/purchase-orders/${id}`); 
              return;
           }
           setPo(foundPO);
         } else {
           router.push("/purchase-orders?error=notfound_edit");
         }
-        setSuppliers(MOCK_SUPPLIERS); // Load suppliers for the form
+        setSuppliers(MOCK_SUPPLIERS); 
         setIsLoading(false);
       }, 500);
     }
@@ -49,7 +48,6 @@ export default function EditPurchaseOrderPage() {
 
   const handleSubmit = async (data: PurchaseOrderFormData) => {
     setIsSubmitting(true);
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     const poIndex = MOCK_PURCHASE_ORDERS.findIndex(p => p.id === id);
@@ -64,9 +62,13 @@ export default function EditPurchaseOrderPage() {
         expectedDeliveryDate: data.expectedDeliveryDate.toISOString(),
         items: data.items.map(item => ({
             ...item,
-            id: item.id || `item-${Date.now()}-${Math.random()}`, // Keep existing ID or generate new
+            id: item.id || `item-${Date.now()}-${Math.random()}`, 
             total: item.quantity * item.price,
         })),
+        payments: data.payments?.map(p => ({ // Process payments
+            ...p,
+            id: p.id || `payment-${Date.now()}-${Math.random()}`,
+        })) || [],
         grandTotal,
         supplierName,
         updatedAt: new Date().toISOString(),
@@ -78,7 +80,7 @@ export default function EditPurchaseOrderPage() {
       title: "Purchase Order Updated",
       description: `PO ${po?.poNumber || ''} has been successfully updated.`,
     });
-    router.push(`/purchase-orders/${id}`); // Redirect to view page after edit
+    router.push(`/purchase-orders/${id}`); 
   };
 
   if (isLoading) {

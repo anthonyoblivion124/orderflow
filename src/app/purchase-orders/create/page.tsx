@@ -10,7 +10,7 @@ import PurchaseOrderForm from "@/components/purchase-orders/PurchaseOrderForm";
 import type { PurchaseOrderFormData } from "@/lib/schemas";
 import { useToast } from "@/hooks/use-toast";
 import { MOCK_PURCHASE_ORDERS, MOCK_SUPPLIERS, getNewPONumber, getNewPOId } from "@/lib/mockData";
-import type { Supplier } from "@/types";
+import type { Supplier, PaymentDetail } from "@/types";
 import { useAuth } from "@/hooks/useAuth";
 import FullScreenLoader from "@/components/FullScreenLoader";
 
@@ -36,7 +36,6 @@ export default function CreatePurchaseOrderPage() {
       return;
     }
     setIsSubmitting(true);
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     const grandTotal = data.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
@@ -51,11 +50,15 @@ export default function CreatePurchaseOrderPage() {
       expectedDeliveryDate: data.expectedDeliveryDate.toISOString(),
       items: data.items.map(item => ({
         ...item,
-        id: `item-${Date.now()}-${Math.random()}`, // Generate item ID
+        id: `item-${Date.now()}-${Math.random()}`, 
         total: item.quantity * item.price,
       })),
+      payments: data.payments?.map(p => ({ // Process payments
+        ...p,
+        id: `payment-${Date.now()}-${Math.random()}`,
+      })) || [],
       grandTotal,
-      createdBy: user.id, // Assuming user object has an id
+      createdBy: user.id, 
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };

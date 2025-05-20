@@ -48,8 +48,8 @@ const createMockItems = (numItems: number): PurchaseOrderItem[] => {
     const price = parseFloat((Math.random() * 100 + 10).toFixed(2));
     items.push({
       id: `item-${Date.now()}-${i}`,
-      itemCode: `SKU-${String.fromCharCode(65 + i -1)}${Math.floor(Math.random() * 900) + 100}`, // Example: SKU-A123
-      name: `Product ${String.fromCharCode(65 + i -1)}`, // Product A, Product B etc.
+      itemCode: `SKU-${String.fromCharCode(65 + i -1)}${Math.floor(Math.random() * 900) + 100}`, 
+      name: `Product ${String.fromCharCode(65 + i -1)}`, 
       quantity,
       price,
       total: parseFloat((quantity * price).toFixed(2)),
@@ -69,9 +69,12 @@ export const MOCK_PURCHASE_ORDERS: PurchaseOrder[] = [
     items: createMockItems(2),
     currency: "USD",
     currencyRate: 1.0,
-    status: "Completed", // Updated status
+    status: "Completed",
+    payments: [
+      { id: "payment-1-1", method: "BankTransfer", amount: 150.75 }
+    ],
     notes: "Urgent delivery required.",
-    grandTotal: 0, // Will be calculated below
+    grandTotal: 0, 
     createdBy: "user-2",
     createdAt: new Date(2024, 6, 1).toISOString(),
     updatedAt: new Date(2024, 6, 2).toISOString(),
@@ -85,8 +88,9 @@ export const MOCK_PURCHASE_ORDERS: PurchaseOrder[] = [
     expectedDeliveryDate: new Date(2024, 6, 5).toISOString(),
     items: createMockItems(3),
     currency: "EUR",
-    currencyRate: 1.08, // Example rate EUR to USD
-    status: "Pending", // Status remains valid
+    currencyRate: 1.08, 
+    status: "Pending", 
+    payments: [],
     grandTotal: 0,
     createdBy: "user-2",
     createdAt: new Date(2024, 5, 20).toISOString(),
@@ -101,8 +105,12 @@ export const MOCK_PURCHASE_ORDERS: PurchaseOrder[] = [
     expectedDeliveryDate: new Date(2024, 6, 25).toISOString(),
     items: createMockItems(1),
     currency: "SGD",
-    currencyRate: 0.74, // Example rate SGD to USD
-    status: "Payment Required", // Updated status
+    currencyRate: 0.74, 
+    status: "Payment Required", 
+    payments: [
+      { id: "payment-3-1", method: "Cash", amount: 50.00 },
+      { id: "payment-3-2", method: "MobileMoney", amount: 25.50 },
+    ],
     grandTotal: 0,
     createdBy: "user-1",
     createdAt: new Date(2024, 6, 5).toISOString(),
@@ -110,26 +118,22 @@ export const MOCK_PURCHASE_ORDERS: PurchaseOrder[] = [
   },
 ];
 
-// Calculate grandTotal for mock POs
 MOCK_PURCHASE_ORDERS.forEach(po => {
   po.grandTotal = po.items.reduce((sum, item) => sum + item.total, 0);
 });
 
-// Helper to get new PO number
 let poCounter = MOCK_PURCHASE_ORDERS.length;
 export const getNewPONumber = () => {
   poCounter += 1;
   return `PO${new Date().getFullYear()}${(poCounter).toString().padStart(4, '0')}`;
 }
 
-// Helper to get new Supplier ID
 let supplierCounter = MOCK_SUPPLIERS.length;
 export const getNewSupplierId = () => {
   supplierCounter += 1;
   return `sup-${supplierCounter}`;
 }
 
-// Helper to get new PO ID
 let poIdCounter = MOCK_PURCHASE_ORDERS.length;
 export const getNewPOId = () => {
   poIdCounter += 1;

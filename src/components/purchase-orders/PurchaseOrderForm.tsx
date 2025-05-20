@@ -16,23 +16,24 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { purchaseOrderSchema, type PurchaseOrderFormData } from "@/lib/schemas";
-import type { PurchaseOrder, Supplier } from "@/types";
+import type { PurchaseOrder, Supplier, PaymentDetail } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon, Loader2, PlusCircle, Trash2 } from "lucide-react";
+import { CalendarIcon, Loader2, PlusCircle, Trash2, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import Link from "next/link";
 import PurchaseOrderItemField from "./PurchaseOrderItemField";
+import PurchaseOrderPaymentField from "./PurchaseOrderPaymentField"; // Import new component
 import { PO_STATUSES, CURRENCIES } from "@/lib/constants";
 import { useEffect } from "react";
 
 interface PurchaseOrderFormProps {
   onSubmit: (data: PurchaseOrderFormData) => Promise<void>;
-  initialData?: PurchaseOrder; // For editing
-  suppliers: Supplier[]; // To populate supplier dropdown
+  initialData?: PurchaseOrder; 
+  suppliers: Supplier[]; 
   isSubmitting?: boolean;
 }
 
@@ -50,23 +51,34 @@ export default function PurchaseOrderForm({ onSubmit, initialData, suppliers, is
             name: item.name,
             quantity: item.quantity,
             price: item.price
-        }))
+        })),
+        payments: initialData.payments?.map(payment => ({ // Map payments
+            id: payment.id,
+            method: payment.method,
+            amount: payment.amount,
+        })) || [],
       } 
     : {
         supplierId: "",
         orderDate: new Date(),
-        expectedDeliveryDate: new Date(new Date().setDate(new Date().getDate() + 7)), // Default to 7 days from now
+        expectedDeliveryDate: new Date(new Date().setDate(new Date().getDate() + 7)), 
         items: [{ itemCode: "", name: "", quantity: 1, price: 0 }],
-        currency: "MMK", // Default to MMK
-        currencyRate: 1.0, // Default rate for MMK
-        status: "Pending", // Default to Pending
+        currency: "MMK", 
+        currencyRate: 1.0, 
+        status: "Pending", 
+        payments: [], // Default empty payments array
         notes: "",
       },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields: itemFields, append: appendItem, remove: removeItem } = useFieldArray({
     control: form.control,
     name: "items",
+  });
+
+  const { fields: paymentFields, append: appendPayment, remove: removePayment } = useFieldArray({
+    control: form.control,
+    name: "payments",
   });
 
   const watchedItems = form.watch("items");
@@ -80,9 +92,10 @@ export default function PurchaseOrderForm({ onSubmit, initialData, suppliers, is
         orderDate: new Date(),
         expectedDeliveryDate: new Date(new Date().setDate(new Date().getDate() + 7)),
         items: [{ itemCode: "", name: "", quantity: 1, price: 0 }],
-        currency: "MMK", // Reset to MMK
-        currencyRate: 1.0, // Reset rate
-        status: "Pending", // Reset to Pending
+        currency: "MMK", 
+        currencyRate: 1.0, 
+        status: "Pending", 
+        payments: [],
         notes: "",
        });
     }
@@ -220,19 +233,40 @@ export default function PurchaseOrderForm({ onSubmit, initialData, suppliers, is
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => append({ itemCode: "", name: "", quantity: 1, price: 0 })}
+                  onClick={() => appendItem({ itemCode: "", name: "", quantity: 1, price: 0 })}
                 >
                   <PlusCircle className="mr-2 h-4 w-4" /> Add Item
                 </Button>
               </div>
-              {fields.map((field, index) => (
-                <PurchaseOrderItemField key={field.id} index={index} onRemove={() => remove(index)} />
+              {itemFields.map((field, index) => (
+                <PurchaseOrderItemField key={field.id} index={index} onRemove={() => removeItem(index)} />
               ))}
-              {fields.length === 0 && <p className="text-muted-foreground text-sm text-center py-4">No items added. Click "Add Item" to begin.</p>}
+              {itemFields.length === 0 && <p className="text-muted-foreground text-sm text-center py-4">No items added. Click "Add Item" to begin.</p>}
             </div>
             
-            {/* Currency and Notes Section */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 border rounded-lg bg-card">
+            {/* Payment Details Section */}
+            <div className="space-y-4 p-6 border rounded-lg bg-card">
+              <div className="flex justify-between items-center border-b pb-2 mb-4">
+                <h3 className="text-lg font-semibold text-foreground flex items-center">
+                  <CreditCard className="mr-2 h-5 w-5 text-accent" /> Payment Details
+                </h3>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => appendPayment({ method: "", amount: 0 })}
+                >
+                  <PlusCircle className="mr-2 h-4 w-4" /> Add Payment
+                </Button>
+              </div>
+              {paymentFields.map((field, index) => (
+                <PurchaseOrderPaymentField key={field.id} index={index} onRemove={() => removePayment(index)} />
+              ))}
+              {paymentFields.length === 0 && <p className="text-muted-foreground text-sm text-center py-4">No payment details added. Click "Add Payment" to record a payment.</p>}
+            </div>
+
+            {/* Currency Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 border rounded-lg bg-card">
               <FormField
                 control={form.control}
                 name="currency"
@@ -266,16 +300,20 @@ export default function PurchaseOrderForm({ onSubmit, initialData, suppliers, is
                     <FormControl>
                       <Input type="number" placeholder="e.g., 1.0" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} step="0.000001" />
                     </FormControl>
-                    <FormDescription className="text-xs">Rate against your base currency (e.g., if base is USD and this PO is in EUR, enter EUR to USD rate).</FormDescription>
+                    <FormDescription className="text-xs">Rate against your base currency.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <FormField
+            </div>
+            
+            {/* Notes Section */}
+            <div className="p-6 border rounded-lg bg-card">
+               <FormField
                 control={form.control}
                 name="notes"
                 render={({ field }) => (
-                  <FormItem className="md:col-span-3">
+                  <FormItem>
                     <FormLabel>Notes</FormLabel>
                     <FormControl>
                       <Textarea placeholder="Any additional notes for this purchase order..." {...field} rows={3} />

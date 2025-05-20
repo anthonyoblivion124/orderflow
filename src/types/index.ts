@@ -22,11 +22,17 @@ export interface Supplier {
 
 export interface PurchaseOrderItem {
   id: string;
-  itemCode?: string; // Added itemCode
+  itemCode?: string;
   name: string;
   quantity: number;
   price: number; // Per unit price
   total: number; // quantity * price
+}
+
+export interface PaymentDetail {
+  id: string; // Can be auto-generated like item IDs
+  method: string;
+  amount: number;
 }
 
 export type PurchaseOrderStatus = "Pending" | "Payment Required" | "Completed";
@@ -35,16 +41,17 @@ export interface PurchaseOrder {
   id: string;
   poNumber: string;
   supplierId: string;
-  supplierName?: string; // Denormalized for display, ideally fetched or joined
+  supplierName?: string; 
   orderDate: string;
   expectedDeliveryDate: string;
   items: PurchaseOrderItem[];
-  currency: string; // e.g., "USD", "EUR", "SGD"
-  currencyRate: number; // Rate against a base currency, e.g., 1.0 for USD, 1.2 for SGD if base is USD
+  currency: string; 
+  currencyRate: number; 
   status: PurchaseOrderStatus;
+  payments?: PaymentDetail[]; // Array of payment details
   notes?: string;
-  grandTotal: number; // Sum of all item totals in the specified currency
-  createdBy: string; // User ID
+  grandTotal: number; 
+  createdBy: string; 
   createdAt: string;
   updatedAt: string;
 }

@@ -13,13 +13,21 @@ export type SupplierFormData = z.infer<typeof supplierSchema>;
 
 export const purchaseOrderItemSchema = z.object({
   id: z.string().optional(), // For existing items during edit
-  itemCode: z.string().max(50, "Item code cannot exceed 50 characters.").optional().nullable(), // Added itemCode, optional and nullable
+  itemCode: z.string().max(50, "Item code cannot exceed 50 characters.").optional().nullable(),
   name: z.string().min(1, "Item name is required.").max(100),
   quantity: z.coerce.number().min(1, "Quantity must be at least 1."),
   price: z.coerce.number().min(0.01, "Price must be greater than 0."),
 });
 
 export type PurchaseOrderItemFormData = z.infer<typeof purchaseOrderItemSchema>;
+
+export const paymentDetailSchema = z.object({
+  id: z.string().optional(), // For useFieldArray key and existing items
+  method: z.string().min(1, "Payment method is required."),
+  amount: z.coerce.number().min(0.01, "Payment amount must be greater than 0."),
+});
+
+export type PaymentDetailFormData = z.infer<typeof paymentDetailSchema>;
 
 export const purchaseOrderSchema = z.object({
   supplierId: z.string().min(1, "Supplier is required."),
@@ -31,6 +39,7 @@ export const purchaseOrderSchema = z.object({
   status: z.enum(["Pending", "Payment Required", "Completed"], {
     required_error: "Status is required.",
   }),
+  payments: z.array(paymentDetailSchema).optional(),
   notes: z.string().max(500, "Notes cannot exceed 500 characters.").optional(),
 }).refine(data => data.expectedDeliveryDate >= data.orderDate, {
   message: "Expected delivery date cannot be earlier than order date.",

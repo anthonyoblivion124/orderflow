@@ -15,6 +15,7 @@ export const NAV_LINKS = [
 ];
 
 export const PO_STATUSES: PurchaseOrderStatus[] = ["Pending", "Payment Required", "Completed"];
+
 export const CURRENCIES = [
   { code: "USD", name: "US Dollar" },
   { code: "EUR", name: "Euro" },
@@ -25,4 +26,12 @@ export const CURRENCIES = [
   { code: "THB", name: "Thai Baht" },
   { code: "VND", name: "Vietnamese Dong" },
   { code: "MMK", name: "Myanmar Kyat" },
+];
+
+export const PAYMENT_METHODS = [
+  { value: "Cash", label: "Cash" },
+  { value: "BankTransfer", label: "Bank Transfer" },
+  { value: "CreditCard", label: "Credit Card" },
+  { value: "MobileMoney", label: "Mobile Money" },
+  { value: "Cheque", label: "Cheque" },
 ];
