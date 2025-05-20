@@ -1,6 +1,7 @@
 
-import type { User, Supplier, PurchaseOrder, PurchaseOrderItem, PurchaseOrderStatus, PaymentMethod } from "@/types";
+import type { User, Supplier, PurchaseOrder, PurchaseOrderItem, PurchaseOrderStatus, PaymentMethod, RolePermissions, UserRole } from "@/types";
 import { format } from "date-fns";
+import { APP_FEATURES_PERMISSIONS } from "./constants";
 
 export const MOCK_USERS: User[] = [
   { id: "user-1", email: "admin@example.com", name: "Admin User", role: "admin", avatarUrl: "https://placehold.co/100x100.png?text=AU" },
@@ -211,3 +212,42 @@ export const getNewUserId = () => {
   userIdCounter += 1;
   return `user-${userIdCounter}`;
 }
+
+// Initialize Role Permissions (sensible defaults)
+const initialManagerPermissions = APP_FEATURES_PERMISSIONS.reduce((acc, feature) => {
+  acc[feature.id] = true; // Managers get all defined features by default
+  return acc;
+}, {} as { [key: string]: boolean });
+
+const initialViewerPermissions = APP_FEATURES_PERMISSIONS.reduce((acc, feature) => {
+  if (feature.id.startsWith('view')) { // Viewers get 'view' features by default
+    acc[feature.id] = true;
+  } else if (feature.id.includes('PurchaseOrders') || feature.id.includes('Suppliers')) {
+    // Allow viewing for POs and Suppliers for viewers as well by default
+    acc[feature.id] = true;
+  }
+  else {
+    acc[feature.id] = false; // Other 'manage' features off for viewers
+  }
+  return acc;
+}, {} as { [key: string]: boolean });
+// Specifically disable payment method management for viewers if it was enabled by view* rule
+initialViewerPermissions['managePaymentMethods'] = false;
+
+
+export let MOCK_ROLE_PERMISSIONS: RolePermissions = {
+  manager: initialManagerPermissions,
+  viewer: initialViewerPermissions,
+};
+
+export const updateMockRolePermission = (role: UserRole, featureId: string, enabled: boolean) => {
+  if (role === 'admin') return; // Admin permissions are not managed here
+  
+  const rolePermissions = MOCK_ROLE_PERMISSIONS[role as keyof RolePermissions];
+  if (rolePermissions) {
+    rolePermissions[featureId] = enabled;
+     // For demonstration, log the change. In a real app, this would be an API call.
+    console.log(`Permission updated for role ${role}: ${featureId} is now ${enabled ? 'ENABLED' : 'DISABLED'}`);
+    console.log("Current MOCK_ROLE_PERMISSIONS:", JSON.parse(JSON.stringify(MOCK_ROLE_PERMISSIONS)));
+  }
+};

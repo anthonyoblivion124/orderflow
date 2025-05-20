@@ -64,3 +64,15 @@ export interface PaymentMethod {
   createdAt: string;
   updatedAt: string;
 }
+
+// For Role Feature Permissions
+export type FeaturePermission = {
+  [featureId: string]: boolean;
+};
+
+export type RolePermissions = {
+  // Only non-admin roles will have their permissions managed here.
+  // Admin role implicitly has all permissions.
+  manager?: FeaturePermission;
+  viewer?: FeaturePermission;
+};
