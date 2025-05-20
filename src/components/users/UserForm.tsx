@@ -32,13 +32,13 @@ export default function UserForm({ onSubmit, initialData, isSubmitting }: UserFo
           name: initialData.name || "",
           email: initialData.email,
           role: initialData.role,
-          avatarUrl: initialData.avatarUrl || "",
+          // avatarUrl: initialData.avatarUrl || "", // Removed
         }
       : {
           name: "",
           email: "",
           role: "viewer" as UserRole, // Default role for new users
-          avatarUrl: "",
+          // avatarUrl: "", // Removed
         },
   });
 
@@ -120,6 +120,8 @@ export default function UserForm({ onSubmit, initialData, isSubmitting }: UserFo
                 </FormItem>
               )}
             />
+            {/* 
+            Removed Avatar URL field:
             <FormField
               control={form.control}
               name="avatarUrl"
@@ -132,7 +134,8 @@ export default function UserForm({ onSubmit, initialData, isSubmitting }: UserFo
                   <FormMessage />
                 </FormItem>
               )}
-            />
+            /> 
+            */}
             {/* Password field could be added for creation, but requires more complex handling for edit */}
           </CardContent>
           <CardFooter className="flex justify-end gap-2 pt-6 border-t">

@@ -57,10 +57,13 @@ export default function ProfilePage() {
               <Label htmlFor="email">Email Address</Label>
               <Input id="email" type="email" defaultValue={user.email} disabled />
             </div>
+            {/* 
+            Removed Avatar URL field:
              <div className="space-y-2">
               <Label htmlFor="avatarUrl">Avatar URL</Label>
               <Input id="avatarUrl" defaultValue={user.avatarUrl || ""} placeholder="https://example.com/avatar.png" />
-            </div>
+            </div> 
+            */}
             <Button className="w-full sm:w-auto">Update Profile</Button>
              <CardDescription className="text-xs pt-2">Profile editing is for demonstration and not functional in this scaffold.</CardDescription>
           </CardContent>

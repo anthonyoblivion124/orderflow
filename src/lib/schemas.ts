@@ -68,8 +68,7 @@ export const userManagementFormSchema = z.object({
   role: z.enum(USER_ROLES as [UserRole, ...UserRole[]], { // Cast USER_ROLES
     required_error: "User role is required.",
   }),
-  avatarUrl: z.string().url("Invalid URL format for avatar.").optional().or(z.literal('')),
+  // avatarUrl: z.string().url("Invalid URL format for avatar.").optional().or(z.literal('')), // Removed
 });
 
 export type UserManagementFormData = z.infer<typeof userManagementFormSchema>;
-

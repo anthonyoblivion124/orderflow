@@ -71,7 +71,7 @@ export default function EditUserPage() {
         name: data.name || MOCK_USERS[userIndex].name, // Keep old name if new one is empty
         email: data.email, // Email is required and comes from form (though disabled in form, schema requires it)
         role: data.role,
-        avatarUrl: data.avatarUrl || undefined,
+        // avatarUrl: data.avatarUrl || undefined, // Removed
         // Add updatedAt if part of your User type for management
       };
     }

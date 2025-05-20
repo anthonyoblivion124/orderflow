@@ -43,7 +43,7 @@ export default function CreateUserPage() {
       name: data.name || undefined,
       email: data.email, // Email is now directly assigned as it's required
       role: data.role,
-      avatarUrl: data.avatarUrl || undefined,
+      // avatarUrl: data.avatarUrl || undefined, // Removed
       // Add createdAt, updatedAt if needed in your User type for management
     };
     MOCK_USERS.push(newUser);
