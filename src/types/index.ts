@@ -3,7 +3,7 @@ export type UserRole = "admin" | "manager" | "viewer";
 
 export interface User {
   id: string;
-  email?: string; // Email is now optional
+  email: string; // Email is now required
   name?: string;
   role: UserRole;
   avatarUrl?: string;
@@ -16,7 +16,7 @@ export interface Supplier {
   email: string;
   phone: string;
   address: string;
-  createdAt: string; 
+  createdAt: string;
   updatedAt: string;
 }
 
@@ -41,17 +41,17 @@ export interface PurchaseOrder {
   id: string;
   poNumber: string;
   supplierId: string;
-  supplierName?: string; 
+  supplierName?: string;
   orderDate: string;
   expectedDeliveryDate: string;
   items: PurchaseOrderItem[];
-  currency: string; 
-  currencyRate: number; 
+  currency: string;
+  currencyRate: number;
   status: PurchaseOrderStatus;
   payments?: PaymentDetail[]; // Array of payment details
   notes?: string;
-  grandTotal: number; 
-  createdBy: string; 
+  grandTotal: number;
+  createdBy: string;
   createdAt: string;
   updatedAt: string;
 }

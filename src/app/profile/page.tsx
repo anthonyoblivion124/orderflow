@@ -18,10 +18,10 @@ export default function ProfilePage() {
   if (!user) {
     return null; // AuthGuard will handle redirect
   }
-  
+
   const initials = user.name
     ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase()
-    : user.email ? user.email[0].toUpperCase() : "U";
+    : user.email[0].toUpperCase(); // Email is required
 
   const avatarSrc = user.avatarUrl || DEFAULT_AVATARS[user.role];
   // For the profile page's large avatar, we can still use a general hint or the role-specific one.
@@ -39,12 +39,12 @@ export default function ProfilePage() {
           <CardHeader>
             <div className="flex items-center space-x-4">
               <Avatar className="h-20 w-20">
-                <AvatarImage src={avatarSrc} alt={user.name || user.email || "User"} data-ai-hint={avatarHint} />
+                <AvatarImage src={avatarSrc} alt={user.name || user.email} data-ai-hint={avatarHint} />
                 <AvatarFallback className="text-3xl">{initials}</AvatarFallback>
               </Avatar>
               <div>
                 <CardTitle className="text-2xl">{user.name || "User"}</CardTitle>
-                <CardDescription>{user.email || "No email provided"} - <span className="capitalize">{user.role}</span></CardDescription>
+                <CardDescription>{user.email} - <span className="capitalize">{user.role}</span></CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -55,7 +55,7 @@ export default function ProfilePage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email Address</Label>
-              <Input id="email" type="email" defaultValue={user.email || ""} disabled placeholder="No email provided"/>
+              <Input id="email" type="email" defaultValue={user.email} disabled />
             </div>
              <div className="space-y-2">
               <Label htmlFor="avatarUrl">Avatar URL</Label>

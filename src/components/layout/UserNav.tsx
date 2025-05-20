@@ -30,7 +30,7 @@ export function UserNav() {
         .map((n) => n[0])
         .join("")
         .toUpperCase()
-    : user.email ? user.email[0].toUpperCase() : "U";
+    : user.email[0].toUpperCase(); // Email is required
 
   const avatarSrc = user.avatarUrl || DEFAULT_AVATARS[user.role];
   const avatarHint = user.avatarUrl ? "profile avatar" : DEFAULT_AVATAR_HINTS[user.role];
@@ -40,7 +40,7 @@ export function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-9 w-9 rounded-full">
           <Avatar className="h-9 w-9">
-            <AvatarImage src={avatarSrc} alt={user.name || user.email || "User"} data-ai-hint={avatarHint} />
+            <AvatarImage src={avatarSrc} alt={user.name || user.email} data-ai-hint={avatarHint} />
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
         </Button>
@@ -50,7 +50,7 @@ export function UserNav() {
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{user.name || "User"}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              {user.email || "No email provided"}
+              {user.email}
             </p>
             <p className="text-xs leading-none text-muted-foreground capitalize">
               Role: {user.role}

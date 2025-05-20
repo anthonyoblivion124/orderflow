@@ -41,14 +41,14 @@ export default function UsersTable({ users, onDelete, searchTerm, onSearchTermCh
     if (name) {
       return name.split(" ").map((n) => n[0]).join("").toUpperCase();
     }
-    if (email) {
+    if (email) { // email is now guaranteed
       return email[0].toUpperCase();
     }
-    return "U";
+    return "U"; // Should not be reached if email is always present
   };
 
   const getUserDisplayName = (user: User): string => {
-    return user.name || user.email || `User ID: ${user.id}`;
+    return user.name || user.email; // Email is always present
   };
 
   return (
@@ -97,7 +97,7 @@ export default function UsersTable({ users, onDelete, searchTerm, onSearchTermCh
                       </Avatar>
                     </TableCell>
                     <TableCell className="font-medium">{user.name || "N/A"}</TableCell>
-                    <TableCell>{user.email || "N/A"}</TableCell>
+                    <TableCell>{user.email}</TableCell>
                     <TableCell>
                       <Badge variant={user.role === 'admin' ? 'default' : 'secondary'} className="capitalize">
                         {user.role}
@@ -122,7 +122,7 @@ export default function UsersTable({ users, onDelete, searchTerm, onSearchTermCh
                               <AlertDialogTrigger asChild>
                                 <DropdownMenuItem
                                   className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
-                                  onSelect={(e) => e.preventDefault()} 
+                                  onSelect={(e) => e.preventDefault()}
                                 >
                                   <Trash2 className="mr-2 h-4 w-4" /> Delete
                                 </DropdownMenuItem>

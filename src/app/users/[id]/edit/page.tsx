@@ -48,7 +48,7 @@ export default function EditUserPage() {
       toast({ title: "Authorization Error", description: "You are not authorized to edit users.", variant: "destructive" });
       return;
     }
-    
+
     // Prevent admin from changing their own role
     if (userToEdit && currentUser.id === userToEdit.id && currentUser.role === 'admin' && data.role !== 'admin') {
         toast({
@@ -63,24 +63,23 @@ export default function EditUserPage() {
     setIsSubmitting(true);
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     const userIndex = MOCK_USERS.findIndex(u => u.id === id);
     if (userIndex !== -1) {
       MOCK_USERS[userIndex] = {
         ...MOCK_USERS[userIndex],
         name: data.name || MOCK_USERS[userIndex].name, // Keep old name if new one is empty
-        // Email is not changed as per form logic (disabled for edit), and now optional in schema
-        email: data.email || MOCK_USERS[userIndex].email, // Retain existing email if form field is empty (though it's disabled)
+        email: data.email, // Email is required and comes from form (though disabled in form, schema requires it)
         role: data.role,
         avatarUrl: data.avatarUrl || undefined,
         // Add updatedAt if part of your User type for management
       };
     }
-    
+
     setIsSubmitting(false);
     toast({
       title: "User Updated",
-      description: `User "${data.name || data.email || userToEdit?.id}" has been successfully updated.`,
+      description: `User "${data.name || data.email}" has been successfully updated.`,
     });
     router.push("/users");
   };
@@ -116,11 +115,10 @@ export default function EditUserPage() {
       <MainAppLayout>
         <PageHeader
           title="Edit User"
-          description={`Editing profile for ${userToEdit.name || userToEdit.email || `User ID: ${userToEdit.id}`}`}
+          description={`Editing profile for ${userToEdit.name || userToEdit.email}`}
         />
         <UserForm onSubmit={handleSubmit} initialData={userToEdit} isSubmitting={isSubmitting} />
       </MainAppLayout>
     </AuthGuard>
   );
 }
-

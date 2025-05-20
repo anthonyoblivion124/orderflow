@@ -19,13 +19,13 @@ export default function CreateUserPage() {
   const { user: currentUser } = useAuth(); // For createdBy/updatedBy if those fields are added to User type
 
   const handleSubmit = async (data: UserManagementFormData) => {
-    if (!currentUser || currentUser.role !== 'admin') { 
+    if (!currentUser || currentUser.role !== 'admin') {
       toast({ title: "Authorization Error", description: "You are not authorized to create users.", variant: "destructive" });
       return;
     }
 
-    // Check for duplicate email only if email is provided
-    if (data.email && MOCK_USERS.some(user => user.email === data.email)) {
+    // Check for duplicate email (email is now required)
+    if (MOCK_USERS.some(user => user.email === data.email)) {
         toast({
             title: "Creation Failed",
             description: "A user with this email address already exists.",
@@ -37,21 +37,21 @@ export default function CreateUserPage() {
     setIsSubmitting(true);
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     const newUser = {
       id: getNewUserId(),
-      name: data.name || undefined, 
-      email: data.email || undefined, // Email can now be undefined
+      name: data.name || undefined,
+      email: data.email, // Email is now directly assigned as it's required
       role: data.role,
       avatarUrl: data.avatarUrl || undefined,
       // Add createdAt, updatedAt if needed in your User type for management
     };
     MOCK_USERS.push(newUser);
-    
+
     setIsSubmitting(false);
     toast({
       title: "User Created",
-      description: `User "${data.name || data.email || 'New User'}" has been successfully added.`,
+      description: `User "${data.name || data.email}" has been successfully added.`,
     });
     router.push("/users");
   };
@@ -68,4 +68,3 @@ export default function CreateUserPage() {
     </AuthGuard>
   );
 }
-
