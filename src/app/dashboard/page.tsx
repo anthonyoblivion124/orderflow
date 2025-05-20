@@ -4,15 +4,21 @@
 import AuthGuard from "@/components/auth/AuthGuard";
 import MainAppLayout from "@/components/layout/MainAppLayout";
 import PageHeader from "@/components/shared/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import { DollarSign, ListChecks, ShoppingCart, PackageSearch, Eye } from "lucide-react";
+import { DollarSign, ListChecks, ShoppingCart, PackageSearch, Eye, Award } from "lucide-react";
 import { MOCK_PURCHASE_ORDERS } from "@/lib/mockData";
 import type { PurchaseOrder } from "@/types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+
+interface RankedItem {
+  rank: number;
+  name: string;
+  quantity: number;
+}
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -21,6 +27,7 @@ export default function DashboardPage() {
     { title: "Pending Approvals", value: "0", icon: ListChecks, color: "text-yellow-500" },
     { title: "Total Spent (This Month)", value: "0 MMK", icon: DollarSign, color: "text-destructive" },
   ]);
+  const [topOrderedItems, setTopOrderedItems] = useState<RankedItem[]>([]);
 
   useEffect(() => {
     // Calculate dynamic stats
@@ -48,6 +55,25 @@ export default function DashboardPage() {
       { title: "Pending Approvals", value: pendingApprovalsCount.toLocaleString('en-US'), icon: ListChecks, color: "text-yellow-500" },
       { title: "Total Spent (This Month)", value: `${Math.round(totalSpentThisMonthInMMK).toLocaleString('en-US')} MMK`, icon: DollarSign, color: "text-destructive" },
     ]);
+
+    // Calculate most ordered items
+    const itemQuantities: { [itemName: string]: number } = {};
+    MOCK_PURCHASE_ORDERS.forEach(po => {
+      po.items.forEach(item => {
+        itemQuantities[item.name] = (itemQuantities[item.name] || 0) + item.quantity;
+      });
+    });
+
+    const aggregatedItems = Object.entries(itemQuantities)
+      .map(([name, quantity]) => ({ name, quantity }))
+      .sort((a, b) => b.quantity - a.quantity);
+
+    const rankedTopItems = aggregatedItems.slice(0, 5).map((item, index) => ({
+      rank: index + 1,
+      name: item.name,
+      quantity: item.quantity,
+    }));
+    setTopOrderedItems(rankedTopItems);
 
   }, []);
 
@@ -141,17 +167,38 @@ export default function DashboardPage() {
           <Card className="shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center">
-                <PackageSearch className="mr-2 h-5 w-5 text-accent" />
-                Recent Items Ordered
+                <Award className="mr-2 h-5 w-5 text-accent" /> {/* Changed icon to Award */}
+                Most Ordered Items
               </CardTitle>
+              <CardDescription>
+                Top 5 items by total quantity ordered.
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">
-                Overview of frequently or recently ordered items.
-              </p>
-               <div className="mt-4 h-64 flex items-center justify-center bg-muted/50 rounded-md">
-                 <span className="text-muted-foreground">Recent items list/chart placeholder</span>
-              </div>
+              {topOrderedItems.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[50px]">Rank</TableHead>
+                        <TableHead>Item Name</TableHead>
+                        <TableHead className="text-right">Total Quantity</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {topOrderedItems.map((item) => (
+                        <TableRow key={item.rank}>
+                          <TableCell className="font-medium text-center">{item.rank}</TableCell>
+                          <TableCell>{item.name}</TableCell>
+                          <TableCell className="text-right">{item.quantity.toLocaleString()}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                 <p className="text-muted-foreground">No item data available to rank.</p>
+              )}
             </CardContent>
           </Card>
         </div>
