@@ -1,86 +1,99 @@
 
+"use client";
+
 import type { ReactNode } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import AppSidebar from "./AppSidebar";
+import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link"; // Keep for other links if any
 import { UserNav } from "./UserNav";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
 import AppLogo from "../AppLogo";
 import { NAV_LINKS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import { ScrollArea } from "@/components/ui/scroll-area";
+// import { ScrollArea } from "@/components/ui/scroll-area"; // Potentially not needed if SidebarContent scrolls
+
+import {
+  SidebarProvider,
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarTrigger,
+  SidebarInset,
+  useSidebar,
+} from "@/components/ui/sidebar"; // Import new sidebar components
 
 interface MainAppLayoutProps {
   children: ReactNode;
 }
 
-export default function MainAppLayout({ children }: MainAppLayoutProps) {
-  const pathname = usePathname();
+function InternalSidebar() {
   const { user, hasRole } = useAuth();
+  const pathname = usePathname();
+  const router = useRouter();
+  const sidebar = useSidebar();
+
+  if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <AppSidebar />
-      <div className="flex flex-col md:ml-64">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-background/95 px-4 shadow-sm backdrop-blur-md sm:px-6">
-          <div className="md:hidden">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <Menu className="h-6 w-6" />
-                  <span className="sr-only">Toggle navigation menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-64 bg-sidebar p-0 text-sidebar-foreground">
-                <div className="flex h-16 items-center border-b border-sidebar-border px-6">
-                  <AppLogo />
-                </div>
-                <ScrollArea className="flex-1">
-                  <nav className="px-3 py-4">
-                    {user && (
-                      <ul className="space-y-1">
-                        {NAV_LINKS.filter(link => hasRole(link.roles)).map((link) => {
-                          const isActive = pathname === link.href || (link.href !== "/dashboard" && pathname.startsWith(link.href));
-                          return (
-                            <li key={link.href}>
-                              <Link
-                                href={link.href}
-                                className={cn(
-                                  "flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-colors duration-150 ease-in-out",
-                                  isActive
-                                    ? "bg-sidebar-item-active-background text-sidebar-item-active-foreground shadow-sm"
-                                    : "hover:bg-sidebar-item-hover-background hover:text-sidebar-item-hover-foreground"
-                                )}
-                                aria-current={isActive ? "page" : undefined}
-                              >
-                                <link.icon className={cn("mr-3 h-5 w-5 flex-shrink-0", isActive ? "text-sidebar-item-active-foreground" : "text-sidebar-foreground/80 group-hover:text-sidebar-item-hover-foreground")} />
-                                {link.label}
-                              </Link>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    )}
-                  </nav>
-                </ScrollArea>
-              </SheetContent>
-            </Sheet>
-          </div>
-          <div className="hidden md:block">
-            {/* Placeholder for breadcrumbs or page title if needed */}
-          </div>
-          <div className="flex items-center gap-4">
-            {/* Other header items can go here */}
+    <Sidebar collapsible="icon" variant="sidebar" side="left">
+      <SidebarHeader>
+        <AppLogo collapsed={sidebar.state === 'collapsed' && !sidebar.isMobile} />
+        <SidebarTrigger className="ml-auto hidden group-data-[collapsible=icon]:hidden group-data-[collapsible=offcanvas]:hidden md:flex" />
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarMenu>
+          {NAV_LINKS.filter(link => hasRole(link.roles)).map((navLink) => {
+            const isActive = pathname === navLink.href || (navLink.href !== "/dashboard" && pathname.startsWith(navLink.href));
+            return (
+              <SidebarMenuItem key={navLink.href}>
+                <SidebarMenuButton
+                  onClick={() => {
+                    if (sidebar.open && !sidebar.isMobile) {
+                      sidebar.setOpen(false);
+                    }
+                    // For mobile, Sidebar component handles its own sheet closing on navigation implicitly if Link is used.
+                    // If navigation is programmatic like this, we might need to explicitly close it.
+                    if (sidebar.isMobile && sidebar.openMobile) {
+                         sidebar.setOpenMobile(false);
+                    }
+                    router.push(navLink.href);
+                  }}
+                  tooltip={navLink.label}
+                  isActive={isActive}
+                >
+                  <navLink.icon className={cn("h-5 w-5 flex-shrink-0")} />
+                  <span>{navLink.label}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
+        </SidebarMenu>
+      </SidebarContent>
+      {/* Optional: Sidebar footer content */}
+      {/* <SidebarFooter>...</SidebarFooter> */}
+    </Sidebar>
+  );
+}
+
+export default function MainAppLayout({ children }: MainAppLayoutProps) {
+  return (
+    <SidebarProvider defaultOpen={true}> {/* `defaultOpen` can be true or false based on preference or cookie */}
+      <div className="min-h-screen bg-background text-foreground flex">
+        <InternalSidebar />
+        <SidebarInset>
+          <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-background/95 px-4 shadow-sm backdrop-blur-md sm:px-6">
+            {/* Mobile hamburger menu trigger */}
+            <SidebarTrigger className="md:hidden" /> 
+            <div className="flex-1" /> {/* Spacer to push UserNav to the right */}
             <UserNav />
-          </div>
-        </header>
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">
-          {children}
-        </main>
+          </header>
+          <main className="flex-1 p-4 sm:p-6 lg:p-8">
+            {children}
+          </main>
+        </SidebarInset>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }
