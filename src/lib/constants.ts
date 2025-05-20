@@ -12,6 +12,7 @@ export const NAV_LINKS = [
   { href: "/purchase-orders", label: "Purchase Orders", icon: ShoppingCart, roles: USER_ROLES },
   { href: "/suppliers", label: "Suppliers", icon: Building, roles: USER_ROLES },
   { href: "/payment-methods", label: "Payment Methods", icon: CreditCard, roles: ["admin", "manager"] },
+  { href: "/users", label: "User Management", icon: Users, roles: ["admin"] },
   // { href: "/settings", label: "Settings", icon: Settings, roles: ["admin", "manager"] }, // Example for role-specific link
 ];
 
@@ -40,3 +41,4 @@ export const PAYMENT_METHODS = [
   { value: "AYA pay", label: "AYA pay" },
   { value: "A Bank", label: "A Bank" },
 ];
+

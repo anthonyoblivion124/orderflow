@@ -205,3 +205,9 @@ export const getNewPaymentMethodId = () => {
   paymentMethodCounter += 1;
   return `pm-${paymentMethodCounter}`;
 };
+
+let userIdCounter = MOCK_USERS.length;
+export const getNewUserId = () => {
+  userIdCounter += 1;
+  return `user-${userIdCounter}`;
+}

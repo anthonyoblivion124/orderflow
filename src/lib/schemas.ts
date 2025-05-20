@@ -1,5 +1,8 @@
 
 import { z } from "zod";
+import { USER_ROLES } from "./constants"; // Ensure USER_ROLES is imported
+import type { UserRole } from "@/types";
+
 
 export const supplierSchema = z.object({
   name: z.string().min(2, { message: "Supplier name must be at least 2 characters." }).max(100),
@@ -55,3 +58,17 @@ export const paymentMethodSchema = z.object({
 });
 
 export type PaymentMethodFormData = z.infer<typeof paymentMethodSchema>;
+
+export const userManagementFormSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters.").max(100).optional().or(z.literal('')),
+  email: z.string().email("Invalid email address."),
+  // Password management is typically more complex and handled separately.
+  // For this form, we'll focus on role and basic info.
+  // password: z.string().min(8, "Password must be at least 8 characters.").optional(), 
+  role: z.enum(USER_ROLES as [UserRole, ...UserRole[]], { // Cast USER_ROLES
+    required_error: "User role is required.",
+  }),
+  avatarUrl: z.string().url("Invalid URL format for avatar.").optional().or(z.literal('')),
+});
+
+export type UserManagementFormData = z.infer<typeof userManagementFormSchema>;
