@@ -24,7 +24,7 @@ import { Badge } from "@/components/ui/badge";
 
 interface UsersTableProps {
   users: User[];
-  onDelete: (userId: string, userName: string) => void;
+  onDelete: (userId: string, userNameOrId: string) => void;
   searchTerm: string;
   onSearchTermChange: (term: string) => void;
 }
@@ -32,8 +32,8 @@ interface UsersTableProps {
 export default function UsersTable({ users, onDelete, searchTerm, onSearchTermChange }: UsersTableProps) {
   const { user: currentUser } = useAuth(); // For checking if the user is deleting self
 
-  const handleDelete = (userId: string, userName: string) => {
-    onDelete(userId, userName);
+  const handleDelete = (userId: string, userNameOrId: string) => {
+    onDelete(userId, userNameOrId);
   };
 
   const getInitials = (name?: string, email?: string): string => {
@@ -44,6 +44,10 @@ export default function UsersTable({ users, onDelete, searchTerm, onSearchTermCh
       return email[0].toUpperCase();
     }
     return "U";
+  };
+
+  const getUserDisplayName = (user: User): string => {
+    return user.name || user.email || `User ID: ${user.id}`;
   };
 
   return (
@@ -84,12 +88,12 @@ export default function UsersTable({ users, onDelete, searchTerm, onSearchTermCh
                 <TableRow key={user.id}>
                   <TableCell>
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={user.avatarUrl || `https://placehold.co/80x80.png?text=${getInitials(user.name, user.email)}`} alt={user.name || user.email} data-ai-hint="avatar user" />
+                      <AvatarImage src={user.avatarUrl || `https://placehold.co/80x80.png?text=${getInitials(user.name, user.email)}`} alt={getUserDisplayName(user)} data-ai-hint="avatar user" />
                       <AvatarFallback>{getInitials(user.name, user.email)}</AvatarFallback>
                     </Avatar>
                   </TableCell>
                   <TableCell className="font-medium">{user.name || "N/A"}</TableCell>
-                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.email || "N/A"}</TableCell>
                   <TableCell>
                     <Badge variant={user.role === 'admin' ? 'default' : 'secondary'} className="capitalize">
                       {user.role}
@@ -126,13 +130,13 @@ export default function UsersTable({ users, onDelete, searchTerm, onSearchTermCh
                         <AlertDialogHeader>
                           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the user "{user.name || user.email}".
+                            This action cannot be undone. This will permanently delete the user "{getUserDisplayName(user)}".
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
                           <AlertDialogAction
-                            onClick={() => handleDelete(user.id, user.name || user.email)}
+                            onClick={() => handleDelete(user.id, getUserDisplayName(user))}
                             className={buttonVariants({ variant: "destructive" })}
                           >
                             Yes, delete user
@@ -151,3 +155,4 @@ export default function UsersTable({ users, onDelete, searchTerm, onSearchTermCh
     </Card>
   );
 }
+

@@ -20,7 +20,7 @@ export default function ProfilePage() {
   
   const initials = user.name
     ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase()
-    : user.email[0].toUpperCase();
+    : user.email ? user.email[0].toUpperCase() : "U";
 
   return (
     <AuthGuard allowedRoles={["admin", "manager", "viewer"]}>
@@ -33,12 +33,12 @@ export default function ProfilePage() {
           <CardHeader>
             <div className="flex items-center space-x-4">
               <Avatar className="h-20 w-20">
-                <AvatarImage src={user.avatarUrl || `https://placehold.co/100x100.png?text=${initials}`} alt={user.name || user.email} data-ai-hint="profile avatar large" />
+                <AvatarImage src={user.avatarUrl || `https://placehold.co/100x100.png?text=${initials}`} alt={user.name || user.email || "User"} data-ai-hint="profile avatar large" />
                 <AvatarFallback className="text-3xl">{initials}</AvatarFallback>
               </Avatar>
               <div>
                 <CardTitle className="text-2xl">{user.name || "User"}</CardTitle>
-                <CardDescription>{user.email} - <span className="capitalize">{user.role}</span></CardDescription>
+                <CardDescription>{user.email || "No email provided"} - <span className="capitalize">{user.role}</span></CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -49,7 +49,7 @@ export default function ProfilePage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email Address</Label>
-              <Input id="email" type="email" defaultValue={user.email} disabled />
+              <Input id="email" type="email" defaultValue={user.email || ""} disabled placeholder="No email provided"/>
             </div>
              <div className="space-y-2">
               <Label htmlFor="avatarUrl">Avatar URL</Label>
@@ -63,3 +63,4 @@ export default function ProfilePage() {
     </AuthGuard>
   );
 }
+

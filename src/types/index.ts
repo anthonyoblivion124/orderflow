@@ -3,7 +3,7 @@ export type UserRole = "admin" | "manager" | "viewer";
 
 export interface User {
   id: string;
-  email: string;
+  email?: string; // Email is now optional
   name?: string;
   role: UserRole;
   avatarUrl?: string;
@@ -76,3 +76,4 @@ export type RolePermissions = {
   manager?: FeaturePermission;
   viewer?: FeaturePermission;
 };
+

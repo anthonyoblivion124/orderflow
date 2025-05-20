@@ -24,8 +24,8 @@ export default function CreateUserPage() {
       return;
     }
 
-    // Check for duplicate email
-    if (MOCK_USERS.some(user => user.email === data.email)) {
+    // Check for duplicate email only if email is provided
+    if (data.email && MOCK_USERS.some(user => user.email === data.email)) {
         toast({
             title: "Creation Failed",
             description: "A user with this email address already exists.",
@@ -40,8 +40,8 @@ export default function CreateUserPage() {
     
     const newUser = {
       id: getNewUserId(),
-      name: data.name || undefined, // Ensure name is undefined if empty string, or handle in schema
-      email: data.email,
+      name: data.name || undefined, 
+      email: data.email || undefined, // Email can now be undefined
       role: data.role,
       avatarUrl: data.avatarUrl || undefined,
       // Add createdAt, updatedAt if needed in your User type for management
@@ -51,7 +51,7 @@ export default function CreateUserPage() {
     setIsSubmitting(false);
     toast({
       title: "User Created",
-      description: `User "${data.email}" has been successfully added.`,
+      description: `User "${data.name || data.email || 'New User'}" has been successfully added.`,
     });
     router.push("/users");
   };
@@ -68,3 +68,4 @@ export default function CreateUserPage() {
     </AuthGuard>
   );
 }
+

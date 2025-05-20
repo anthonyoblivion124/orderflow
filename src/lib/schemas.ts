@@ -61,7 +61,7 @@ export type PaymentMethodFormData = z.infer<typeof paymentMethodSchema>;
 
 export const userManagementFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters.").max(100).optional().or(z.literal('')),
-  email: z.string().email("Invalid email address."),
+  email: z.string().email("Invalid email address format.").optional().or(z.literal('')),
   // Password management is typically more complex and handled separately.
   // For this form, we'll focus on role and basic info.
   // password: z.string().min(8, "Password must be at least 8 characters.").optional(), 
@@ -72,3 +72,4 @@ export const userManagementFormSchema = z.object({
 });
 
 export type UserManagementFormData = z.infer<typeof userManagementFormSchema>;
+

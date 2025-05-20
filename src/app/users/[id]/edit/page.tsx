@@ -69,7 +69,8 @@ export default function EditUserPage() {
       MOCK_USERS[userIndex] = {
         ...MOCK_USERS[userIndex],
         name: data.name || MOCK_USERS[userIndex].name, // Keep old name if new one is empty
-        // Email is not changed as per form logic (disabled for edit)
+        // Email is not changed as per form logic (disabled for edit), and now optional in schema
+        email: data.email || MOCK_USERS[userIndex].email, // Retain existing email if form field is empty (though it's disabled)
         role: data.role,
         avatarUrl: data.avatarUrl || undefined,
         // Add updatedAt if part of your User type for management
@@ -79,7 +80,7 @@ export default function EditUserPage() {
     setIsSubmitting(false);
     toast({
       title: "User Updated",
-      description: `User "${data.email}" has been successfully updated.`,
+      description: `User "${data.name || data.email || userToEdit?.id}" has been successfully updated.`,
     });
     router.push("/users");
   };
@@ -115,10 +116,11 @@ export default function EditUserPage() {
       <MainAppLayout>
         <PageHeader
           title="Edit User"
-          description={`Editing profile for ${userToEdit.email}`}
+          description={`Editing profile for ${userToEdit.name || userToEdit.email || `User ID: ${userToEdit.id}`}`}
         />
         <UserForm onSubmit={handleSubmit} initialData={userToEdit} isSubmitting={isSubmitting} />
       </MainAppLayout>
     </AuthGuard>
   );
 }
+

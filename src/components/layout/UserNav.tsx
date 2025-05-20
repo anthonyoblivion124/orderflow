@@ -29,14 +29,14 @@ export function UserNav() {
         .map((n) => n[0])
         .join("")
         .toUpperCase()
-    : user.email[0].toUpperCase();
+    : user.email ? user.email[0].toUpperCase() : "U";
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-9 w-9 rounded-full">
           <Avatar className="h-9 w-9">
-            <AvatarImage src={user.avatarUrl || `https://placehold.co/100x100.png?text=${initials}`} alt={user.name || user.email} data-ai-hint="profile avatar" />
+            <AvatarImage src={user.avatarUrl || `https://placehold.co/100x100.png?text=${initials}`} alt={user.name || user.email || "User"} data-ai-hint="profile avatar" />
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
         </Button>
@@ -46,7 +46,7 @@ export function UserNav() {
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{user.name || "User"}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              {user.email}
+              {user.email || "No email provided"}
             </p>
             <p className="text-xs leading-none text-muted-foreground capitalize">
               Role: {user.role}
@@ -77,3 +77,4 @@ export function UserNav() {
     </DropdownMenu>
   );
 }
+
