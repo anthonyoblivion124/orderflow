@@ -29,9 +29,11 @@ export const CURRENCIES = [
 ];
 
 export const PAYMENT_METHODS = [
-  { value: "Cash", label: "Cash" },
-  { value: "BankTransfer", label: "Bank Transfer" },
-  { value: "CreditCard", label: "Credit Card" },
-  { value: "MobileMoney", label: "Mobile Money" },
-  { value: "Cheque", label: "Cheque" },
+  { value: "KBZ Bank", label: "KBZ Bank" },
+  { value: "MAB Bank", label: "MAB Bank" },
+  { value: "AYA Bank", label: "AYA Bank" },
+  { value: "KBZ pay", label: "KBZ pay" },
+  { value: "AYA pay", label: "AYA pay" },
+  { value: "A Bank", label: "A Bank" },
 ];
+
