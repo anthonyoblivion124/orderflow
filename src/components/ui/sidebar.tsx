@@ -93,9 +93,9 @@ const SidebarProvider = React.forwardRef<
     // Helper to toggle the sidebar.
     const toggleSidebar = React.useCallback(() => {
       // Check if isMobile is defined before using it
-      if (isMobile) {
+      if (isMobile === true) { // Explicitly check for true
         setOpenMobile((currentOpenMobile) => !currentOpenMobile);
-      } else if (isMobile === false) { // Explicitly check for false if it's not undefined
+      } else if (isMobile === false) { // Explicitly check for false
         setOpen((currentOpen) => !currentOpen);
       }
       // If isMobile is undefined, this function might not behave as expected or do nothing.
@@ -212,7 +212,8 @@ const Sidebar = React.forwardRef<
           <SheetContent
             data-sidebar="sidebar"
             data-mobile="true"
-            className="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
+            aria-label="Main navigation menu" // Added aria-label for accessibility
+            className="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground"
             style={
               {
                 "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
@@ -775,3 +776,5 @@ export {
   SidebarTrigger,
   useSidebar,
 }
+
+    
