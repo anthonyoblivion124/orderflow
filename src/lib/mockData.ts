@@ -68,7 +68,7 @@ export const MOCK_PURCHASE_ORDERS: PurchaseOrder[] = [
     expectedDeliveryDate: new Date(2024, 6, 15).toISOString(),
     items: createMockItems(2),
     currency: "USD",
-    currencyRate: 1.0,
+    currencyRate: 2100.0, // Updated rate for USD to MMK (example)
     status: "Completed",
     payments: [
       { id: "payment-1-1", method: "KBZ Bank", amount: 150.75 }
@@ -116,6 +116,57 @@ export const MOCK_PURCHASE_ORDERS: PurchaseOrder[] = [
     createdAt: new Date(2024, 6, 5).toISOString(),
     updatedAt: new Date(2024, 6, 6).toISOString(),
   },
+  { // Adding a couple more for "recent" demo
+    id: "po-4",
+    poNumber: "PO20240004",
+    supplierId: "sup-1",
+    supplierName: "Tech Solutions Inc.",
+    orderDate: new Date(2024, 6, 10).toISOString(), // More recent
+    expectedDeliveryDate: new Date(2024, 6, 20).toISOString(),
+    items: createMockItems(1),
+    currency: "USD",
+    currencyRate: 2100.0,
+    status: "Pending",
+    payments: [],
+    grandTotal: 0,
+    createdBy: "user-1",
+    createdAt: new Date(2024, 6, 10).toISOString(),
+    updatedAt: new Date(2024, 6, 10).toISOString(),
+  },
+  {
+    id: "po-5",
+    poNumber: "PO20240005",
+    supplierId: "sup-2",
+    supplierName: "Office Supplies Co.",
+    orderDate: new Date(2024, 6, 12).toISOString(), // Even more recent
+    expectedDeliveryDate: new Date(2024, 6, 22).toISOString(),
+    items: createMockItems(2),
+    currency: "MMK",
+    currencyRate: 1.0,
+    status: "Completed",
+    payments: [{ id: "payment-5-1", method: "MAB Bank", amount: 120.00 }],
+    grandTotal: 0,
+    createdBy: "user-2",
+    createdAt: new Date(2024, 6, 12).toISOString(),
+    updatedAt: new Date(2024, 6, 12).toISOString(),
+  },
+   {
+    id: "po-6",
+    poNumber: "PO20240006",
+    supplierId: "sup-3",
+    supplierName: "Global Components Ltd.",
+    orderDate: new Date(2024, 4, 15).toISOString(), // Older one
+    expectedDeliveryDate: new Date(2024, 5, 1).toISOString(),
+    items: createMockItems(4),
+    currency: "USD",
+    currencyRate: 2050.0, // Slightly different rate for variety
+    status: "Completed",
+    payments: [{ id: "payment-6-1", method: "KBZ Bank", amount: 350.00 }],
+    grandTotal: 0,
+    createdBy: "user-1",
+    createdAt: new Date(2024, 4, 15).toISOString(),
+    updatedAt: new Date(2024, 4, 15).toISOString(),
+  }
 ];
 
 MOCK_PURCHASE_ORDERS.forEach(po => {
