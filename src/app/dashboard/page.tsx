@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import { format } from "date-fns";
 
 interface RankedItem {
   rank: number;
@@ -95,7 +96,7 @@ export default function DashboardPage() {
     .sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime())
     .slice(0, 5);
 
-  const formatCurrency = (amount: number, currencyCode: string) => {
+  const formatDisplayCurrency = (amount: number, currencyCode: string) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: currencyCode, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
   };
 
@@ -135,6 +136,7 @@ export default function DashboardPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Order No</TableHead>
+                        <TableHead>Order Date</TableHead>
                         <TableHead>Supplier</TableHead>
                         {!isViewer && (
                           <>
@@ -154,14 +156,15 @@ export default function DashboardPage() {
                         return (
                           <TableRow key={po.id}>
                             <TableCell className="font-medium">{po.poNumber}</TableCell>
+                            <TableCell>{format(new Date(po.orderDate), "dd MMM yyyy")}</TableCell>
                             <TableCell>{po.supplierName}</TableCell>
                             {!isViewer && (
                               <>
                                 <TableCell className="text-right">
-                                  {formatCurrency(po.grandTotal, po.currency)}
+                                  {formatDisplayCurrency(po.grandTotal, po.currency)}
                                 </TableCell>
                                 <TableCell className="text-right">
-                                  {formatCurrency(totalInMMK, "MMK")}
+                                  {formatDisplayCurrency(totalInMMK, "MMK")}
                                 </TableCell>
                               </>
                             )}
