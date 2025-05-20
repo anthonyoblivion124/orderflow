@@ -55,3 +55,12 @@ export interface PurchaseOrder {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface PaymentMethod {
+  id: string;
+  name: string;
+  // description?: string; // Optional for future extension
+  // isActive?: boolean; // Optional for future extension
+  createdAt: string;
+  updatedAt: string;
+}

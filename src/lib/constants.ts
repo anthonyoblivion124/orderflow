@@ -1,6 +1,6 @@
 
 import type { UserRole, PurchaseOrderStatus } from "@/types";
-import { LayoutDashboard, ShoppingCart, Users, Settings, Building } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Users, Settings, Building, CreditCard } from "lucide-react";
 
 export const APP_NAME = "OrderFlow";
 export const APP_DESCRIPTION = "Manage your purchase orders efficiently.";
@@ -11,6 +11,7 @@ export const NAV_LINKS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: USER_ROLES },
   { href: "/purchase-orders", label: "Purchase Orders", icon: ShoppingCart, roles: USER_ROLES },
   { href: "/suppliers", label: "Suppliers", icon: Building, roles: USER_ROLES },
+  { href: "/payment-methods", label: "Payment Methods", icon: CreditCard, roles: ["admin", "manager"] },
   // { href: "/settings", label: "Settings", icon: Settings, roles: ["admin", "manager"] }, // Example for role-specific link
 ];
 
@@ -28,6 +29,9 @@ export const CURRENCIES = [
   { code: "MMK", name: "Myanmar Kyat" },
 ];
 
+// This list is currently used by the Purchase Order form.
+// The new Payment Methods management page allows customizing these,
+// but the PO form has not yet been updated to use the dynamic list.
 export const PAYMENT_METHODS = [
   { value: "KBZ Bank", label: "KBZ Bank" },
   { value: "MAB Bank", label: "MAB Bank" },
@@ -36,4 +40,3 @@ export const PAYMENT_METHODS = [
   { value: "AYA pay", label: "AYA pay" },
   { value: "A Bank", label: "A Bank" },
 ];
-

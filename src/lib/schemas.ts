@@ -47,3 +47,11 @@ export const purchaseOrderSchema = z.object({
 });
 
 export type PurchaseOrderFormData = z.infer<typeof purchaseOrderSchema>;
+
+export const paymentMethodSchema = z.object({
+  name: z.string().min(2, { message: "Payment method name must be at least 2 characters." }).max(100),
+  // description: z.string().max(250, "Description cannot exceed 250 characters.").optional(),
+  // isActive: z.boolean().default(true).optional(),
+});
+
+export type PaymentMethodFormData = z.infer<typeof paymentMethodSchema>;

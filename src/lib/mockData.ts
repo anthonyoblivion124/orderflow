@@ -1,5 +1,5 @@
 
-import type { User, Supplier, PurchaseOrder, PurchaseOrderItem, PurchaseOrderStatus } from "@/types";
+import type { User, Supplier, PurchaseOrder, PurchaseOrderItem, PurchaseOrderStatus, PaymentMethod } from "@/types";
 import { format } from "date-fns";
 
 export const MOCK_USERS: User[] = [
@@ -71,7 +71,7 @@ export const MOCK_PURCHASE_ORDERS: PurchaseOrder[] = [
     currencyRate: 1.0,
     status: "Completed",
     payments: [
-      { id: "payment-1-1", method: "BankTransfer", amount: 150.75 }
+      { id: "payment-1-1", method: "KBZ Bank", amount: 150.75 }
     ],
     notes: "Urgent delivery required.",
     grandTotal: 0, 
@@ -87,8 +87,8 @@ export const MOCK_PURCHASE_ORDERS: PurchaseOrder[] = [
     orderDate: new Date(2024, 5, 20).toISOString(),
     expectedDeliveryDate: new Date(2024, 6, 5).toISOString(),
     items: createMockItems(3),
-    currency: "EUR",
-    currencyRate: 1.08, 
+    currency: "MMK",
+    currencyRate: 1.0, 
     status: "Pending", 
     payments: [],
     grandTotal: 0,
@@ -104,12 +104,12 @@ export const MOCK_PURCHASE_ORDERS: PurchaseOrder[] = [
     orderDate: new Date(2024, 6, 5).toISOString(),
     expectedDeliveryDate: new Date(2024, 6, 25).toISOString(),
     items: createMockItems(1),
-    currency: "SGD",
-    currencyRate: 0.74, 
+    currency: "MMK",
+    currencyRate: 1.0, 
     status: "Payment Required", 
     payments: [
-      { id: "payment-3-1", method: "Cash", amount: 50.00 },
-      { id: "payment-3-2", method: "MobileMoney", amount: 25.50 },
+      { id: "payment-3-1", method: "KBZ pay", amount: 50.00 },
+      { id: "payment-3-2", method: "AYA pay", amount: 25.50 },
     ],
     grandTotal: 0,
     createdBy: "user-1",
@@ -139,3 +139,18 @@ export const getNewPOId = () => {
   poIdCounter += 1;
   return `po-${poIdCounter}`;
 }
+
+export const MOCK_PAYMENT_METHODS: PaymentMethod[] = [
+  { id: "pm-1", name: "KBZ Bank", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "pm-2", name: "MAB Bank", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "pm-3", name: "AYA Bank", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "pm-4", name: "KBZ pay", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "pm-5", name: "AYA pay", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "pm-6", name: "A Bank", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+];
+
+let paymentMethodCounter = MOCK_PAYMENT_METHODS.length;
+export const getNewPaymentMethodId = () => {
+  paymentMethodCounter += 1;
+  return `pm-${paymentMethodCounter}`;
+};
