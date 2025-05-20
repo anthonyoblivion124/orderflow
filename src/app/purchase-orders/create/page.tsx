@@ -74,7 +74,7 @@ export default function CreatePurchaseOrderPage() {
 
   if (isLoadingSuppliers) {
     return (
-      <AuthGuard allowedRoles={["admin", "manager"]}>
+      <AuthGuard allowedRoles={["admin", "manager", "viewer"]} requiredFeature="managePurchaseOrders">
         <MainAppLayout>
           <FullScreenLoader message="Loading form data..." />
         </MainAppLayout>
@@ -83,7 +83,7 @@ export default function CreatePurchaseOrderPage() {
   }
 
   return (
-    <AuthGuard allowedRoles={["admin", "manager"]}>
+    <AuthGuard allowedRoles={["admin", "manager", "viewer"]} requiredFeature="managePurchaseOrders">
       <MainAppLayout>
         <PageHeader
           title="Create New Purchase Order"

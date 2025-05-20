@@ -4,7 +4,7 @@
 import type { User, UserRole } from "@/types";
 import React, { createContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { MOCK_USERS } from "@/lib/mockData"; // Using mock users for demo
+import { MOCK_USERS, MOCK_ROLE_PERMISSIONS } from "@/lib/mockData"; // Using mock users for demo
 
 interface AuthContextType {
   user: User | null;
@@ -12,6 +12,7 @@ interface AuthContextType {
   login: (email: string, password?: string) => Promise<boolean>; // Password for demo, not actually used securely
   logout: () => void;
   hasRole: (roles: UserRole[]) => boolean;
+  hasFeaturePermission: (featureId: string) => boolean;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -66,8 +67,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return roles.includes(user.role);
   }, [user]);
 
+  const hasFeaturePermission = useCallback((featureId: string): boolean => {
+    if (!user) return false;
+    if (user.role === 'admin') return true; // Admins always have all permissions
+
+    const permissions = MOCK_ROLE_PERMISSIONS[user.role as keyof typeof MOCK_ROLE_PERMISSIONS];
+    if (permissions) {
+      return permissions[featureId] === true;
+    }
+    return false;
+  }, [user]);
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout, hasRole }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout, hasRole, hasFeaturePermission }}>
       {children}
     </AuthContext.Provider>
   );

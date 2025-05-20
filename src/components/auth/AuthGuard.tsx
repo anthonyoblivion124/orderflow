@@ -9,31 +9,53 @@ import FullScreenLoader from "@/components/FullScreenLoader";
 
 interface AuthGuardProps {
   children: ReactNode;
-  allowedRoles?: UserRole[]; // If not provided, just checks for authentication
+  allowedRoles?: UserRole[];
+  requiredFeature?: string; // New prop for specific feature permission
 }
 
-export default function AuthGuard({ children, allowedRoles }: AuthGuardProps) {
-  const { user, isLoading, hasRole } = useAuth();
+export default function AuthGuard({ children, allowedRoles, requiredFeature }: AuthGuardProps) {
+  const auth = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading) {
-      if (!user) {
+    if (!auth.isLoading) {
+      if (!auth.user) {
         router.replace("/login");
-      } else if (allowedRoles && allowedRoles.length > 0 && !hasRole(allowedRoles)) {
-        // Optional: Redirect to an unauthorized page or dashboard if role mismatch
-        // For now, redirect to dashboard, could be a specific 'unauthorized' page
-        router.replace("/dashboard?error=unauthorized"); 
+      } else {
+        let hasRequiredRole = true;
+        if (allowedRoles && allowedRoles.length > 0) {
+          hasRequiredRole = auth.hasRole(allowedRoles);
+        }
+
+        let hasRequiredFeaturePermission = true;
+        if (requiredFeature) {
+          hasRequiredFeaturePermission = auth.hasFeaturePermission(requiredFeature);
+        }
+
+        if (!hasRequiredRole || !hasRequiredFeaturePermission) {
+          router.replace("/dashboard?error=unauthorized");
+        }
       }
     }
-  }, [user, isLoading, router, allowedRoles, hasRole]);
+  }, [auth.user, auth.isLoading, router, allowedRoles, requiredFeature, auth]);
 
-  if (isLoading || !user) {
+  if (auth.isLoading || !auth.user) {
     return <FullScreenLoader message="Verifying access..." />;
   }
 
-  if (allowedRoles && allowedRoles.length > 0 && !hasRole(allowedRoles)) {
-     // Still show loader while redirecting for role mismatch
+  // Check again after loading state is resolved
+  let hasRequiredRole = true;
+  if (allowedRoles && allowedRoles.length > 0) {
+    hasRequiredRole = auth.hasRole(allowedRoles);
+  }
+
+  let hasRequiredFeaturePermission = true;
+  if (requiredFeature) {
+    hasRequiredFeaturePermission = auth.hasFeaturePermission(requiredFeature);
+  }
+
+  if (!hasRequiredRole || !hasRequiredFeaturePermission) {
+    // Still show loader while redirecting for role/permission mismatch
     return <FullScreenLoader message="Access denied. Redirecting..." />;
   }
 

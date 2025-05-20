@@ -12,12 +12,13 @@ import SuppliersTable from "@/components/suppliers/SuppliersTable";
 import { useState, useEffect } from "react";
 import type { Supplier } from "@/types";
 import FullScreenLoader from "@/components/FullScreenLoader"; 
-// Removed unused useToast import, as toast is now handled in SuppliersTable
+import { useAuth } from "@/hooks/useAuth"; // Import useAuth
 
 export default function SuppliersPage() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const { hasFeaturePermission } = useAuth(); // Get hasFeaturePermission
 
   // Simulate fetching data
   useEffect(() => {
@@ -41,7 +42,7 @@ export default function SuppliersPage() {
 
   if (isLoading) {
     return (
-      <AuthGuard allowedRoles={["admin", "manager", "viewer"]}>
+      <AuthGuard allowedRoles={["admin", "manager", "viewer"]} requiredFeature="viewSuppliers">
         <MainAppLayout>
           <FullScreenLoader message="Loading suppliers..." />
         </MainAppLayout>
@@ -50,17 +51,19 @@ export default function SuppliersPage() {
   }
 
   return (
-    <AuthGuard allowedRoles={["admin", "manager", "viewer"]}>
+    <AuthGuard allowedRoles={["admin", "manager", "viewer"]} requiredFeature="viewSuppliers">
       <MainAppLayout>
         <PageHeader
           title="Suppliers"
           description="Manage your company's suppliers and their details."
           action={
-            <Button asChild>
-              <Link href="/suppliers/create">
-                <PlusCircle className="mr-2 h-4 w-4" /> Add New Supplier
-              </Link>
-            </Button>
+            hasFeaturePermission("manageSuppliers") ? ( // Check permission for button
+              <Button asChild>
+                <Link href="/suppliers/create">
+                  <PlusCircle className="mr-2 h-4 w-4" /> Add New Supplier
+                </Link>
+              </Button>
+            ) : null
           }
         />
         <SuppliersTable 

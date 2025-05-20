@@ -44,7 +44,7 @@ export default function CreateSupplierPage() {
   };
 
   return (
-    <AuthGuard allowedRoles={["admin", "manager"]}>
+    <AuthGuard allowedRoles={["admin", "manager", "viewer"]} requiredFeature="manageSuppliers">
       <MainAppLayout>
         <PageHeader
           title="Add New Supplier"
