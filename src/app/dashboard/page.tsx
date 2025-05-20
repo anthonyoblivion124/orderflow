@@ -30,6 +30,8 @@ export default function DashboardPage() {
   ]);
   const [topOrderedItems, setTopOrderedItems] = useState<RankedItem[]>([]);
 
+  const isViewer = user?.role === 'viewer';
+
   useEffect(() => {
     // Calculate dynamic stats
     const totalPurchaseOrdersCount = MOCK_PURCHASE_ORDERS.length;
@@ -134,8 +136,12 @@ export default function DashboardPage() {
                       <TableRow>
                         <TableHead>Order No</TableHead>
                         <TableHead>Supplier</TableHead>
-                        <TableHead className="text-right">Total</TableHead>
-                        <TableHead className="text-right">Total (MMK)</TableHead>
+                        {!isViewer && (
+                          <>
+                            <TableHead className="text-right">Total</TableHead>
+                            <TableHead className="text-right">Total (MMK)</TableHead>
+                          </>
+                        )}
                         <TableHead className="text-center">View</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -149,12 +155,16 @@ export default function DashboardPage() {
                           <TableRow key={po.id}>
                             <TableCell className="font-medium">{po.poNumber}</TableCell>
                             <TableCell>{po.supplierName}</TableCell>
-                            <TableCell className="text-right">
-                              {formatCurrency(po.grandTotal, po.currency)}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {formatCurrency(totalInMMK, "MMK")}
-                            </TableCell>
+                            {!isViewer && (
+                              <>
+                                <TableCell className="text-right">
+                                  {formatCurrency(po.grandTotal, po.currency)}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  {formatCurrency(totalInMMK, "MMK")}
+                                </TableCell>
+                              </>
+                            )}
                             <TableCell className="text-center">
                               <Button variant="ghost" size="icon" asChild>
                                 <Link href={`/purchase-orders/${po.id}`}>
