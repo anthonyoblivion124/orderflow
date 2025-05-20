@@ -6,14 +6,15 @@ import MainAppLayout from "@/components/layout/MainAppLayout";
 import PageHeader from "@/components/shared/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import { DollarSign, ListChecks, ShoppingCart, Eye, Award } from "lucide-react";
+import { DollarSign, ListChecks, ShoppingCart, Award } from "lucide-react";
 import { MOCK_PURCHASE_ORDERS } from "@/lib/mockData";
 import type { PurchaseOrder } from "@/types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import Link from "next/link";
+import Link from "next/link"; // Keep for other links if any, but not for row navigation
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
+import { useRouter } from "next/navigation"; // Import useRouter
 
 interface RankedItem {
   rank: number;
@@ -24,6 +25,7 @@ interface RankedItem {
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const router = useRouter(); // Initialize router
   const [dashboardStats, setDashboardStats] = useState([
     { title: "Total Purchase Orders", value: "0", icon: ShoppingCart, color: "text-primary" },
     { title: "Pending Approvals", value: "0", icon: ListChecks, color: "text-yellow-500" },
@@ -34,7 +36,6 @@ export default function DashboardPage() {
   const isViewer = user?.role === 'viewer';
 
   useEffect(() => {
-    // Calculate dynamic stats
     const totalPurchaseOrdersCount = MOCK_PURCHASE_ORDERS.length;
     const pendingApprovalsCount = MOCK_PURCHASE_ORDERS.filter(po => po.status === "Pending").length;
 
@@ -49,7 +50,7 @@ export default function DashboardPage() {
         if (po.currency === "MMK") {
           totalSpentThisMonthInMMK += po.grandTotal;
         } else {
-          totalSpentThisMonthInMMK += po.grandTotal * (po.currencyRate || 1); // Assume rate 1 if not specified
+          totalSpentThisMonthInMMK += po.grandTotal * (po.currencyRate || 1); 
         }
       }
     });
@@ -60,16 +61,13 @@ export default function DashboardPage() {
       { title: "Total Spent (This Month)", value: `${Math.round(totalSpentThisMonthInMMK).toLocaleString('en-US')} MMK`, icon: DollarSign, color: "text-destructive" },
     ]);
 
-    // Calculate most ordered items
     const itemDetails: { [itemName: string]: { quantity: number; itemCode?: string } } = {};
     MOCK_PURCHASE_ORDERS.forEach(po => {
       po.items.forEach(item => {
         if (!itemDetails[item.name]) {
-          // Initialize with quantity 0 and the itemCode from the first encountered item with this name
           itemDetails[item.name] = { quantity: 0, itemCode: item.itemCode };
         }
         itemDetails[item.name].quantity += item.quantity;
-        // If itemCode wasn't set during initialization (e.g. first item had no code), try to set it.
         if (!itemDetails[item.name].itemCode && item.itemCode) {
             itemDetails[item.name].itemCode = item.itemCode;
         }
@@ -91,7 +89,6 @@ export default function DashboardPage() {
   }, []);
 
 
-  // Get recent purchase orders (e.g., latest 5 by orderDate)
   const recentPOs = MOCK_PURCHASE_ORDERS
     .sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime())
     .slice(0, 5);
@@ -144,17 +141,21 @@ export default function DashboardPage() {
                             <TableHead className="text-right">Total (MMK)</TableHead>
                           </>
                         )}
-                        <TableHead className="text-center">View</TableHead>
+                        {/* Removed View column header */}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {recentPOs.map((po) => {
                         const totalInMMK = po.currency === "MMK" 
                           ? po.grandTotal 
-                          : po.grandTotal * (po.currencyRate || 0); // Ensure currencyRate is available
+                          : po.grandTotal * (po.currencyRate || 0); 
                         
                         return (
-                          <TableRow key={po.id}>
+                          <TableRow 
+                            key={po.id} 
+                            onClick={() => router.push(`/purchase-orders/${po.id}`)}
+                            className="cursor-pointer hover:bg-muted/50"
+                          >
                             <TableCell className="font-medium">{po.poNumber}</TableCell>
                             <TableCell>{format(new Date(po.orderDate), "dd MMM yyyy")}</TableCell>
                             <TableCell>{po.supplierName}</TableCell>
@@ -168,14 +169,7 @@ export default function DashboardPage() {
                                 </TableCell>
                               </>
                             )}
-                            <TableCell className="text-center">
-                              <Button variant="ghost" size="icon" asChild>
-                                <Link href={`/purchase-orders/${po.id}`}>
-                                  <Eye className="h-4 w-4" />
-                                  <span className="sr-only">View PO</span>
-                                </Link>
-                              </Button>
-                            </TableCell>
+                            {/* Removed View button cell */}
                           </TableRow>
                         );
                       })}
@@ -231,3 +225,4 @@ export default function DashboardPage() {
     </AuthGuard>
   );
 }
+
