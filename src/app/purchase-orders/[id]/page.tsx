@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { MOCK_PURCHASE_ORDERS, MOCK_SUPPLIERS } from "@/lib/mockData";
 import type { PurchaseOrder, Supplier } from "@/types";
-import { ArrowLeft, Edit, Printer, DollarSign, CalendarDays, Truck, Info, CheckCircle, XCircle, Settings2, FileText, CreditCard, EyeOff, Eye } from "lucide-react";
+import { ArrowLeft, Edit, Printer, DollarSign, CalendarDays, Truck, Info, CheckCircle, XCircle, Settings2, FileText, CreditCard } from "lucide-react";
 import FullScreenLoader from "@/components/FullScreenLoader";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
@@ -28,11 +28,12 @@ export default function ViewPurchaseOrderPage() {
   const [supplier, setSupplier] = useState<Supplier | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { user, hasRole } = useAuth();
-  const [showSensitiveInfo, setShowSensitiveInfo] = useState(true);
 
   const canEditPO = (status: PurchaseOrder["status"]) => {
     return hasRole(['admin', 'manager']) && status === "Pending";
   };
+
+  const isViewer = user?.role === 'viewer';
 
   useEffect(() => {
     if (id) {
@@ -99,7 +100,7 @@ export default function ViewPurchaseOrderPage() {
   const totalPaid = po.payments?.reduce((sum, payment) => sum + payment.amount, 0) || 0;
   const amountDue = po.grandTotal - totalPaid;
 
-  const isViewer = user?.role === 'viewer';
+  const hiddenPlaceholder = "[Hidden]";
 
   return (
     <AuthGuard allowedRoles={["admin", "manager", "viewer"]}>
@@ -119,12 +120,6 @@ export default function ViewPurchaseOrderPage() {
                 </Link>
               </Button>
               )}
-              {isViewer && (
-                <Button variant="secondary" onClick={() => setShowSensitiveInfo(prev => !prev)}>
-                  {showSensitiveInfo ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
-                  {showSensitiveInfo ? "Hide Details" : "Show Details"}
-                </Button>
-              )}
             </div>
           }
         />
@@ -135,8 +130,8 @@ export default function ViewPurchaseOrderPage() {
                 <div>
                     <CardTitle className="text-2xl">PO #{po.poNumber}</CardTitle>
                     <CardDescription>
-                        {isViewer && !showSensitiveInfo ? (
-                            "Supplier: [Hidden]"
+                        {isViewer ? (
+                            `Supplier: ${hiddenPlaceholder}`
                         ) : (
                             <>
                              Supplier: <Link href={`/suppliers/${po.supplierId}`} className="text-primary hover:underline">{supplier?.name || po.supplierId}</Link>
@@ -164,8 +159,8 @@ export default function ViewPurchaseOrderPage() {
                 <p className="text-muted-foreground flex items-center"><DollarSign className="mr-2 h-4 w-4 text-accent"/>Currency Info</p>
                 <p className="font-medium">
                     {po.currency} 
-                    {isViewer && !showSensitiveInfo ? (
-                        " (Rate: [Hidden])"
+                    {isViewer ? (
+                        ` (Rate: ${hiddenPlaceholder})`
                     ) : (
                         ` (Rate: ${po.currencyRate.toFixed(4)})`
                     )}
@@ -194,8 +189,12 @@ export default function ViewPurchaseOrderPage() {
                         <TableCell>{item.itemCode || "N/A"}</TableCell>
                         <TableCell className="font-medium">{item.name}</TableCell>
                         <TableCell className="text-center">{item.quantity}</TableCell>
-                        <TableCell className="text-right">{new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.price)}</TableCell>
-                        <TableCell className="text-right font-semibold">{new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.total)}</TableCell>
+                        <TableCell className="text-right">
+                            {isViewer ? hiddenPlaceholder : new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.price)}
+                        </TableCell>
+                        <TableCell className="text-right font-semibold">
+                            {isViewer ? hiddenPlaceholder : new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.total)}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -207,10 +206,10 @@ export default function ViewPurchaseOrderPage() {
                 <div className="text-right">
                     <p className="text-muted-foreground text-sm">Subtotal</p>
                     <p className="text-lg font-semibold text-foreground">
-                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: po.currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(po.grandTotal)}
+                        {isViewer ? hiddenPlaceholder : new Intl.NumberFormat('en-US', { style: 'currency', currency: po.currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(po.grandTotal)}
                     </p>
                     <p className="text-xl font-bold text-primary mt-1">
-                        Grand Total: {new Intl.NumberFormat('en-US', { style: 'currency', currency: po.currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(po.grandTotal)}
+                        Grand Total: {isViewer ? hiddenPlaceholder : new Intl.NumberFormat('en-US', { style: 'currency', currency: po.currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(po.grandTotal)}
                     </p>
                 </div>
             </div>
@@ -235,7 +234,7 @@ export default function ViewPurchaseOrderPage() {
                           <TableRow key={payment.id}>
                             <TableCell className="font-medium">{payment.method}</TableCell>
                             <TableCell className="text-right font-semibold">
-                              {new Intl.NumberFormat('en-US', { style: 'currency', currency: po.currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(payment.amount)}
+                                {isViewer ? hiddenPlaceholder : new Intl.NumberFormat('en-US', { style: 'currency', currency: po.currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(payment.amount)}
                             </TableCell>
                           </TableRow>
                         ))}
@@ -244,10 +243,10 @@ export default function ViewPurchaseOrderPage() {
                   </div>
                   <div className="mt-4 text-right space-y-1">
                      <p className="text-md font-medium">
-                        Total Paid: {new Intl.NumberFormat('en-US', { style: 'currency', currency: po.currency }).format(totalPaid)}
+                        Total Paid: {isViewer ? hiddenPlaceholder : new Intl.NumberFormat('en-US', { style: 'currency', currency: po.currency }).format(totalPaid)}
                      </p>
-                     <p className={`text-md font-semibold ${amountDue > 0 ? 'text-destructive' : 'text-green-600'}`}>
-                        Amount Due: {new Intl.NumberFormat('en-US', { style: 'currency', currency: po.currency }).format(amountDue)}
+                     <p className={`text-md font-semibold ${amountDue > 0 && !isViewer ? 'text-destructive' : isViewer ? '' : 'text-green-600'}`}>
+                        Amount Due: {isViewer ? hiddenPlaceholder : new Intl.NumberFormat('en-US', { style: 'currency', currency: po.currency }).format(amountDue)}
                      </p>
                   </div>
                 </div>
@@ -275,6 +274,6 @@ export default function ViewPurchaseOrderPage() {
     </AuthGuard>
   );
 }
-
+    
 
     
