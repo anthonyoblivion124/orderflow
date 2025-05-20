@@ -7,7 +7,7 @@ import MainAppLayout from "@/components/layout/MainAppLayout";
 import PageHeader from "@/components/shared/PageHeader";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
-import { MOCK_PURCHASE_ORDERS } from "@/lib/mockData";
+import { MOCK_PURCHASE_ORDERS, MOCK_SUPPLIERS } from "@/lib/mockData"; // Added MOCK_SUPPLIERS import
 import PurchaseOrdersTable from "@/components/purchase-orders/PurchaseOrdersTable";
 import { useState, useEffect } from "react";
 import type { PurchaseOrder } from "@/types";
@@ -23,10 +23,6 @@ export default function PurchaseOrdersPage() {
   // Simulate fetching data
   useEffect(() => {
     setTimeout(() => {
-      setPurchaseOrders(MOCK_PURCHASE_ORDERS.map(po => ({
-        ...po,
-        supplierName: MOCK_PURCHASE_ORDERS.find(s => s.id === po.supplierId)?.supplierName || 'Unknown Supplier' // This mock logic is faulty, should be MOCK_SUPPLIERS
-      })));
       // Corrected mock data join:
       const enrichedPOs = MOCK_PURCHASE_ORDERS.map(po => {
         const supplier = MOCK_SUPPLIERS.find(s => s.id === po.supplierId);
@@ -82,3 +78,4 @@ export default function PurchaseOrdersPage() {
     </AuthGuard>
   );
 }
+
