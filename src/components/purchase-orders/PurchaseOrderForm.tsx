@@ -44,8 +44,9 @@ export default function PurchaseOrderForm({ onSubmit, initialData, suppliers, is
         ...initialData,
         orderDate: new Date(initialData.orderDate),
         expectedDeliveryDate: new Date(initialData.expectedDeliveryDate),
-        items: initialData.items.map(item => ({ // Ensure items match form data structure if different
+        items: initialData.items.map(item => ({ 
             id: item.id,
+            itemCode: item.itemCode || "",
             name: item.name,
             quantity: item.quantity,
             price: item.price
@@ -55,7 +56,7 @@ export default function PurchaseOrderForm({ onSubmit, initialData, suppliers, is
         supplierId: "",
         orderDate: new Date(),
         expectedDeliveryDate: new Date(new Date().setDate(new Date().getDate() + 7)), // Default to 7 days from now
-        items: [{ name: "", quantity: 1, price: 0 }],
+        items: [{ itemCode: "", name: "", quantity: 1, price: 0 }],
         currency: "USD",
         currencyRate: 1.0,
         status: "Draft",
@@ -74,11 +75,11 @@ export default function PurchaseOrderForm({ onSubmit, initialData, suppliers, is
   const handleSubmit = async (data: PurchaseOrderFormData) => {
     await onSubmit(data);
      if (!initialData) {
-       form.reset({ // Reset with default structure
+       form.reset({ 
         supplierId: "",
         orderDate: new Date(),
         expectedDeliveryDate: new Date(new Date().setDate(new Date().getDate() + 7)),
-        items: [{ name: "", quantity: 1, price: 0 }],
+        items: [{ itemCode: "", name: "", quantity: 1, price: 0 }],
         currency: "USD",
         currencyRate: 1.0,
         status: "Draft",
@@ -219,7 +220,7 @@ export default function PurchaseOrderForm({ onSubmit, initialData, suppliers, is
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => append({ name: "", quantity: 1, price: 0 })}
+                  onClick={() => append({ itemCode: "", name: "", quantity: 1, price: 0 })}
                 >
                   <PlusCircle className="mr-2 h-4 w-4" /> Add Item
                 </Button>

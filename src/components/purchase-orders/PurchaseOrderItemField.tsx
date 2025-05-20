@@ -26,9 +26,22 @@ export default function PurchaseOrderItemField({ index, onRemove }: PurchaseOrde
     <div className="grid grid-cols-12 gap-x-4 gap-y-2 items-start p-4 border rounded-md relative bg-card">
       <FormField
         control={control}
+        name={`items.${index}.itemCode`}
+        render={({ field }) => (
+          <FormItem className="col-span-12 sm:col-span-2">
+            <FormLabel className="text-xs">Item Code</FormLabel>
+            <FormControl>
+              <Input placeholder="e.g., SKU123" {...field} value={field.value || ''} />
+            </FormControl>
+            <FormMessage className="text-xs" />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={control}
         name={`items.${index}.name`}
         render={({ field }) => (
-          <FormItem className="col-span-12 sm:col-span-4">
+          <FormItem className="col-span-12 sm:col-span-3">
             <FormLabel className="text-xs">Item Name</FormLabel>
             <FormControl>
               <Input placeholder="e.g., Laptop Pro" {...field} />
@@ -63,13 +76,13 @@ export default function PurchaseOrderItemField({ index, onRemove }: PurchaseOrde
           </FormItem>
         )}
       />
-      <div className="col-span-6 sm:col-span-2 flex flex-col justify-end h-full pb-1">
+      <div className="col-span-10 sm:col-span-2 flex flex-col justify-end h-full pb-1">
          <FormLabel className="text-xs text-muted-foreground">Line Total</FormLabel>
         <span className="text-sm font-medium pt-[9px]">
           {isNaN(itemTotal) ? "N/A" : itemTotal.toFixed(2)}
         </span>
       </div>
-      <div className="col-span-6 sm:col-span-2 flex items-end justify-end h-full pb-1">
+      <div className="col-span-2 sm:col-span-1 flex items-end justify-end h-full pb-1">
         <Button
           type="button"
           variant="ghost"

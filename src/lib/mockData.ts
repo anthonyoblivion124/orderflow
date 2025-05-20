@@ -48,6 +48,7 @@ const createMockItems = (numItems: number): PurchaseOrderItem[] => {
     const price = parseFloat((Math.random() * 100 + 10).toFixed(2));
     items.push({
       id: `item-${Date.now()}-${i}`,
+      itemCode: `SKU-${String.fromCharCode(65 + i -1)}${Math.floor(Math.random() * 900) + 100}`, // Example: SKU-A123
       name: `Product ${String.fromCharCode(65 + i -1)}`, // Product A, Product B etc.
       quantity,
       price,
@@ -134,4 +135,3 @@ export const getNewPOId = () => {
   poIdCounter += 1;
   return `po-${poIdCounter}`;
 }
-

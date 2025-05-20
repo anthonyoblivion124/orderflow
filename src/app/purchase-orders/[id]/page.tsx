@@ -165,7 +165,8 @@ export default function ViewPurchaseOrderPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[60%]">Item Name</TableHead>
+                      <TableHead className="w-[25%]">Item Code</TableHead>
+                      <TableHead className="w-[35%]">Item Name</TableHead>
                       <TableHead className="text-center">Quantity</TableHead>
                       <TableHead className="text-right">Unit Price</TableHead>
                       <TableHead className="text-right">Total</TableHead>
@@ -174,6 +175,7 @@ export default function ViewPurchaseOrderPage() {
                   <TableBody>
                     {po.items.map((item) => (
                       <TableRow key={item.id}>
+                        <TableCell>{item.itemCode || "N/A"}</TableCell>
                         <TableCell className="font-medium">{item.name}</TableCell>
                         <TableCell className="text-center">{item.quantity}</TableCell>
                         <TableCell className="text-right">{new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.price)}</TableCell>

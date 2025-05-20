@@ -22,6 +22,7 @@ export interface Supplier {
 
 export interface PurchaseOrderItem {
   id: string;
+  itemCode?: string; // Added itemCode
   name: string;
   quantity: number;
   price: number; // Per unit price

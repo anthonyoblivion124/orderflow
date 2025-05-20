@@ -13,6 +13,7 @@ export type SupplierFormData = z.infer<typeof supplierSchema>;
 
 export const purchaseOrderItemSchema = z.object({
   id: z.string().optional(), // For existing items during edit
+  itemCode: z.string().max(50, "Item code cannot exceed 50 characters.").optional().nullable(), // Added itemCode, optional and nullable
   name: z.string().min(1, "Item name is required.").max(100),
   quantity: z.coerce.number().min(1, "Quantity must be at least 1."),
   price: z.coerce.number().min(0.01, "Price must be greater than 0."),
@@ -37,4 +38,3 @@ export const purchaseOrderSchema = z.object({
 });
 
 export type PurchaseOrderFormData = z.infer<typeof purchaseOrderSchema>;
-
