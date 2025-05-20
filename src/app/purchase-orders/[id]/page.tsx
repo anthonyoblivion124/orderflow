@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { MOCK_PURCHASE_ORDERS, MOCK_SUPPLIERS } from "@/lib/mockData";
 import type { PurchaseOrder, Supplier } from "@/types";
-import { ArrowLeft, Edit, Printer, DollarSign, CalendarDays, Truck, Info, CheckCircle, XCircle, Settings2, FileText, CreditCard } from "lucide-react";
+import { ArrowLeft, Edit, Printer, DollarSign, CalendarDays, Truck, Info, CheckCircle, XCircle, Settings2, FileText, CreditCard, EyeOff, Eye } from "lucide-react";
 import FullScreenLoader from "@/components/FullScreenLoader";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +27,8 @@ export default function ViewPurchaseOrderPage() {
   const [po, setPo] = useState<PurchaseOrder | null>(null);
   const [supplier, setSupplier] = useState<Supplier | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { hasRole } = useAuth();
+  const { user, hasRole } = useAuth();
+  const [showSensitiveInfo, setShowSensitiveInfo] = useState(true);
 
   const canEditPO = (status: PurchaseOrder["status"]) => {
     return hasRole(['admin', 'manager']) && status === "Pending";
@@ -98,6 +99,8 @@ export default function ViewPurchaseOrderPage() {
   const totalPaid = po.payments?.reduce((sum, payment) => sum + payment.amount, 0) || 0;
   const amountDue = po.grandTotal - totalPaid;
 
+  const isViewer = user?.role === 'viewer';
+
   return (
     <AuthGuard allowedRoles={["admin", "manager", "viewer"]}>
       <MainAppLayout>
@@ -105,7 +108,7 @@ export default function ViewPurchaseOrderPage() {
           title={`Purchase Order: ${po.poNumber}`}
           description={`Details for PO created on ${format(new Date(po.orderDate), "PPP")}`}
           action={
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button variant="outline" asChild>
                 <Link href="/purchase-orders"><ArrowLeft className="mr-2 h-4 w-4"/> Back to List</Link>
               </Button>
@@ -115,6 +118,12 @@ export default function ViewPurchaseOrderPage() {
                   <Edit className="mr-2 h-4 w-4" /> Edit PO
                 </Link>
               </Button>
+              )}
+              {isViewer && (
+                <Button variant="secondary" onClick={() => setShowSensitiveInfo(prev => !prev)}>
+                  {showSensitiveInfo ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
+                  {showSensitiveInfo ? "Hide Details" : "Show Details"}
+                </Button>
               )}
             </div>
           }
@@ -126,7 +135,13 @@ export default function ViewPurchaseOrderPage() {
                 <div>
                     <CardTitle className="text-2xl">PO #{po.poNumber}</CardTitle>
                     <CardDescription>
-                        Supplier: <Link href={`/suppliers/${po.supplierId}`} className="text-primary hover:underline">{supplier?.name || po.supplierId}</Link>
+                        {isViewer && !showSensitiveInfo ? (
+                            "Supplier: [Hidden]"
+                        ) : (
+                            <>
+                             Supplier: <Link href={`/suppliers/${po.supplierId}`} className="text-primary hover:underline">{supplier?.name || po.supplierId}</Link>
+                            </>
+                        )}
                     </CardDescription>
                 </div>
                 <Badge variant={getStatusBadgeVariant(po.status)} className="px-3 py-1.5 text-sm">
@@ -147,7 +162,14 @@ export default function ViewPurchaseOrderPage() {
               </div>
                <div className="space-y-1">
                 <p className="text-muted-foreground flex items-center"><DollarSign className="mr-2 h-4 w-4 text-accent"/>Currency Info</p>
-                <p className="font-medium">{po.currency} (Rate: {po.currencyRate.toFixed(4)})</p>
+                <p className="font-medium">
+                    {po.currency} 
+                    {isViewer && !showSensitiveInfo ? (
+                        " (Rate: [Hidden])"
+                    ) : (
+                        ` (Rate: ${po.currencyRate.toFixed(4)})`
+                    )}
+                </p>
               </div>
             </div>
             
@@ -253,3 +275,6 @@ export default function ViewPurchaseOrderPage() {
     </AuthGuard>
   );
 }
+
+
+    
