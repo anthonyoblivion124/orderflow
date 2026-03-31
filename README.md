@@ -211,3 +211,9 @@ Keep code production-ready and readable.
   </tbody>
 </table>
 ```
+
+
+PORT=4000
+FRONTEND_URL=http://localhost:9002
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
