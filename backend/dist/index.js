@@ -5,7 +5,7 @@ import { healthRouter } from "./routes/health.js";
 import { dailyPrintRouter } from "./routes/dailyPrint.js";
 const app = express();
 app.use(cors({ origin: env.frontendUrl }));
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 app.use(healthRouter);
 app.use("/api", dailyPrintRouter);
 app.listen(env.port, () => {

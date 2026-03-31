@@ -6,12 +6,11 @@ import re
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 ITEM_PATTERN = re.compile(r"^Item\s*-\s*(?P<code>[^,]+),\s*(?P<name>.+)$", re.IGNORECASE)
 TOTAL_QTY_PATTERN = re.compile(r"Total\s*Qty\s*:\s*(\d+)", re.IGNORECASE)
 DATE_PATTERN = re.compile(r"^\d{1,2}/\d{1,2}/\d{4}\s+\d{1,2}:\d{2}\s+(AM|PM)$", re.IGNORECASE)
-AMOUNT_PATTERN = re.compile(r"^-?\d[\d,]*(\.\d+)?$")
 
 
 @dataclass
@@ -40,12 +39,20 @@ class SaleRecord:
     amount: float | None
 
 
+@dataclass
+class ExtractionResult:
+    groups: list[GroupRecord]
+    items: list[ItemRecord]
+    sales: list[SaleRecord]
+    warnings: list[str]
+
+
 def normalize_row(row: list[str]) -> list[str]:
-    return [cell.strip() for cell in row]
+    return [cell.replace("\ufeff", "").strip() for cell in row]
 
 
 def non_empty_cells(row: list[str]) -> list[str]:
-    return [cell for cell in row if cell]
+    return [cell for cell in row if cell and cell.strip()]
 
 
 def parse_number(value: str) -> float | None:
@@ -80,10 +87,11 @@ def strip_code_prefix_from_name(item_code: str, item_name: str) -> str:
 
 
 def parse_item_line(cells: list[str]) -> tuple[str, str, int | None] | None:
-    if not cells:
+    matched_cell = first_matching(cells, ITEM_PATTERN)
+    if not matched_cell:
         return None
-    first = cells[0]
-    match = ITEM_PATTERN.match(first)
+
+    match = ITEM_PATTERN.match(matched_cell)
     if not match:
         return None
 
@@ -100,29 +108,36 @@ def parse_item_line(cells: list[str]) -> tuple[str, str, int | None] | None:
 
 
 def is_group_line(cells: list[str]) -> bool:
-    return any(cell == "အုပ်စု" or cell.lower() == "group" for cell in cells)
+    return any(cell.strip().lower() in {"အုပ်စု", "group"} for cell in cells)
 
 
 def parse_group_name(cells: list[str]) -> str:
     for cell in cells:
         if cell.startswith("-"):
             return cell[1:].strip()
-    return next((cell for cell in cells if cell and cell not in {"အုပ်စု", "Group"}), "Unknown")
+    return next(
+        (cell for cell in cells if cell and cell.lower() not in {"အုပ်စု", "group"}),
+        "Unknown",
+    )
 
 
 def is_page_break_line(cells: list[str]) -> bool:
     joined = " | ".join(cells)
-    return "Print Date" in joined or "Page " in joined
+    lowered = joined.lower()
+    return "print date" in lowered or "page " in lowered or "page:" in lowered
 
 
 def looks_like_transaction(cells: list[str]) -> bool:
-    if not cells:
-        return False
-    return DATE_PATTERN.match(cells[0]) is not None
+    return first_matching(cells, DATE_PATTERN) is not None
 
 
-def parse_transaction(cells: list[str]) -> tuple[str, str, str, float | None, float | None, float | None]:
-    sale_datetime = cells[0]
+def parse_transaction(cells: list[str]) -> tuple[str, str, str, float | None, float | None, float | None] | None:
+    dt_cell = first_matching(cells, DATE_PATTERN)
+    if not dt_cell:
+        return None
+
+    dt_index = cells.index(dt_cell)
+    tail = cells[dt_index + 1 :]
 
     voucher = ""
     customer = ""
@@ -130,34 +145,46 @@ def parse_transaction(cells: list[str]) -> tuple[str, str, str, float | None, fl
     unit_price: float | None = None
     amount: float | None = None
 
-    for index, cell in enumerate(cells[1:], start=1):
-        if not voucher and "-" in cell and any(char.isdigit() for char in cell):
-            voucher = cell
-            if index + 1 < len(cells):
-                customer = cells[index + 1]
-            continue
+    text_tokens: list[str] = []
+    number_tokens: list[float] = []
 
-        if AMOUNT_PATTERN.match(cell):
-            number = parse_number(cell)
-            if number is None:
-                continue
-            if qty is None:
-                qty = number
-            elif unit_price is None:
-                unit_price = number
-            else:
-                amount = number
+    for cell in tail:
+        number = parse_number(cell)
+        if number is None:
+            text_tokens.append(cell)
+        else:
+            number_tokens.append(number)
+
+    for token in text_tokens:
+        if any(char.isdigit() for char in token) and not voucher:
+            voucher = token
+        elif not customer:
+            customer = token
+
+    if number_tokens:
+        qty = number_tokens[0]
+    if len(number_tokens) > 1:
+        unit_price = number_tokens[1]
+    if len(number_tokens) > 2:
+        amount = number_tokens[-1]
 
     if amount is None and qty is not None and unit_price is not None:
         amount = qty * unit_price
 
-    return sale_datetime, voucher, customer, qty, unit_price, amount
+    return dt_cell, voucher, customer, qty, unit_price, amount
 
 
-def extract_sales_tables(csv_path: Path) -> dict[str, list[dict[str, Any]]]:
+def _warn(messages: list[str], message: str, verbose: bool) -> None:
+    messages.append(message)
+    if verbose:
+        print(f"[WARN] {message}")
+
+
+def extract_sales_tables(csv_path: Path, verbose: bool = False) -> ExtractionResult:
     groups: list[GroupRecord] = []
     items: list[ItemRecord] = []
     sales: list[SaleRecord] = []
+    warnings: list[str] = []
 
     current_group = "Unknown"
     current_item_code = ""
@@ -193,8 +220,21 @@ def extract_sales_tables(csv_path: Path) -> dict[str, list[dict[str, Any]]]:
                 )
                 continue
 
-            if looks_like_transaction(cells) and current_item_code:
-                sale_datetime, voucher, customer, qty, unit_price, amount = parse_transaction(cells)
+            if looks_like_transaction(cells):
+                parsed_sale = parse_transaction(cells)
+                if parsed_sale is None:
+                    _warn(warnings, f"Skipped malformed transaction row: {cells}", verbose)
+                    continue
+
+                if not current_item_code:
+                    _warn(
+                        warnings,
+                        f"Skipped transaction without active item context: {cells}",
+                        verbose,
+                    )
+                    continue
+
+                sale_datetime, voucher, customer, qty, unit_price, amount = parsed_sale
                 sales.append(
                     SaleRecord(
                         group_name=current_group,
@@ -208,34 +248,37 @@ def extract_sales_tables(csv_path: Path) -> dict[str, list[dict[str, Any]]]:
                         amount=amount,
                     )
                 )
+                continue
 
-    unique_groups = sorted({group.group_name for group in groups})
+            _warn(warnings, f"Skipped unrecognized row: {cells}", verbose)
 
-    return {
-        "groups": [group.__dict__ for group in groups],
-        "unique_groups": [{"group_name": name} for name in unique_groups],
-        "items": [item.__dict__ for item in items],
-        "sales": [sale.__dict__ for sale in sales],
-    }
+    unique_group_names = sorted({group.group_name for group in groups})
+    if not unique_group_names and items:
+        unique_group_names = sorted({item.group_name for item in items})
+
+    unique_groups = [GroupRecord(group_name=name) for name in unique_group_names]
+
+    return ExtractionResult(groups=unique_groups, items=items, sales=sales, warnings=warnings)
 
 
-def write_table(path: Path, rows: list[dict[str, Any]]) -> None:
+def dataclass_rows(records: Iterable[Any]) -> list[dict[str, Any]]:
+    return [record.__dict__ for record in records]
+
+
+def write_table(path: Path, rows: list[dict[str, Any]], headers: list[str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    if not rows:
-        path.write_text("", encoding="utf-8-sig")
-        return
-
-    headers = list(rows[0].keys())
     with path.open("w", newline="", encoding="utf-8-sig") as file:
         writer = csv.DictWriter(file, fieldnames=headers)
         writer.writeheader()
-        writer.writerows(rows)
+        if rows:
+            writer.writerows(rows)
 
 
-def export_tables(csv_path: Path, output_dir: Path) -> dict[str, Path]:
-    tables = extract_sales_tables(csv_path)
-    monthly = summarize_monthly_sales(tables["sales"])
-    group_totals = summarize_group_sales(tables["sales"])
+def export_tables(csv_path: Path, output_dir: Path, verbose: bool = False) -> dict[str, Path]:
+    tables = extract_sales_tables(csv_path, verbose=verbose)
+    sales_rows = dataclass_rows(tables.sales)
+    monthly = summarize_monthly_sales(sales_rows)
+    group_totals = summarize_group_sales(sales_rows)
     output_paths = {
         "groups": output_dir / "groups.csv",
         "items": output_dir / "items.csv",
@@ -244,11 +287,37 @@ def export_tables(csv_path: Path, output_dir: Path) -> dict[str, Path]:
         "group_totals": output_dir / "group_totals.csv",
     }
 
-    write_table(output_paths["groups"], tables["unique_groups"])
-    write_table(output_paths["items"], tables["items"])
-    write_table(output_paths["sales"], tables["sales"])
-    write_table(output_paths["monthly_sales"], monthly)
-    write_table(output_paths["group_totals"], group_totals)
+    write_table(output_paths["groups"], dataclass_rows(tables.groups), ["group_name"])
+    write_table(
+        output_paths["items"],
+        dataclass_rows(tables.items),
+        ["group_name", "item_code", "item_name", "declared_total_qty"],
+    )
+    write_table(
+        output_paths["sales"],
+        sales_rows,
+        [
+            "group_name",
+            "item_code",
+            "item_name",
+            "sale_datetime",
+            "voucher_no",
+            "customer",
+            "qty",
+            "unit_price",
+            "amount",
+        ],
+    )
+    write_table(output_paths["monthly_sales"], monthly, ["month", "total_sales"])
+    write_table(
+        output_paths["group_totals"],
+        group_totals,
+        ["group_name", "line_count", "total_qty", "total_sales"],
+    )
+
+    if tables.warnings and verbose:
+        print(f"Warnings: {len(tables.warnings)}")
+
     return output_paths
 
 
@@ -264,7 +333,7 @@ def summarize_monthly_sales(sales_rows: list[dict[str, Any]]) -> list[dict[str, 
             date = datetime.strptime(sale_datetime, "%m/%d/%Y %I:%M %p")
             month_key = date.strftime("%Y-%m")
         except ValueError:
-            month_key = "unknown"
+            continue
 
         monthly_totals[month_key] = monthly_totals.get(month_key, 0.0) + amount
 
@@ -315,12 +384,17 @@ def parse_args() -> argparse.Namespace:
         default=Path("extracted"),
         help="Output folder for extracted tables",
     )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Print warnings for skipped/malformed rows",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    outputs = export_tables(args.input, args.out)
+    outputs = export_tables(args.input, args.out, verbose=args.verbose)
     print("Extracted tables:")
     for name, path in outputs.items():
         print(f"- {name}: {path}")

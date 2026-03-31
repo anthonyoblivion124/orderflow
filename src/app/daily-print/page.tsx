@@ -2,6 +2,7 @@ import MainAppLayout from "@/components/layout/MainAppLayout";
 import AuthGuard from "@/components/auth/AuthGuard";
 import PageHeader from "@/components/shared/PageHeader";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -134,6 +135,16 @@ export default async function DailyPrintPage({
         <PageHeader
           title="Daily Print"
           description="Daily sales summary from database."
+          action={
+            <div className="flex gap-2">
+              <Button variant="outline" asChild>
+                <Link href="/daily-print/extracted">View Extracted</Link>
+              </Button>
+              <Button asChild>
+                <Link href="/daily-print/import">Import CSV</Link>
+              </Button>
+            </div>
+          }
         />
 
         <Card>
