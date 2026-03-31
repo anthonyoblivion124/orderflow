@@ -1,8 +1,58 @@
-# Firebase Studio
+# OrderFlow
 
-This is a NextJS starter in Firebase Studio.
+OrderFlow is now structured with a separate frontend and backend:
 
-To get started, take a look at src/app/page.tsx.
+- Frontend: Next.js app in the repository root (`src/`, `package.json`)
+- Backend: Express + TypeScript API in [`backend`](backend)
+
+## Project Structure
+
+- Frontend (root)
+  - App UI, auth guards, pages, and components
+  - Daily Print page reads report data from database
+- Backend ([backend](backend))
+  - REST API routes
+  - Supabase server integration
+  - Health and Daily Print endpoints
+
+## Run Frontend
+
+```bash
+npm install
+npm run dev
+```
+
+## Run Backend
+
+```bash
+cd backend
+npm install
+cp .env.example .env
+npm run dev
+```
+
+Backend default URL: `http://localhost:4000`
+
+## Backend API
+
+- `GET /health`
+- `GET /api/daily-print/dates`
+- `GET /api/daily-print?reportDate=YYYY-MM-DD`
+
+## Supabase Setup
+
+1. Create root env file:
+   - Copy [`.env.example`](.env.example) to `.env.local`
+  - Set `BACKEND_URL` (or `NEXT_PUBLIC_BACKEND_URL`) to backend base URL
+2. Create backend env file:
+   - Copy [`backend/.env.example`](backend/.env.example) to `backend/.env`
+   - Fill `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`
+3. Run schema SQL from [`docs/supabase_schema.sql`](docs/supabase_schema.sql)
+
+## Notes
+
+- Frontend now calls backend API for Daily Print data.
+- Backend is scaffolded and ready for progressive migration of all app domains (users, suppliers, purchase orders, payment methods).
 
 
 ### Prompt

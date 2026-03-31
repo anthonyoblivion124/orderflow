@@ -2,8 +2,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import Link from "next/link"; // Keep for other links if any
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 import { UserNav } from "./UserNav";
 import AppLogo from "../AppLogo";
 import { NAV_LINKS } from "@/lib/constants";
@@ -31,7 +31,6 @@ interface MainAppLayoutProps {
 function InternalSidebar() {
   const { user, hasRole } = useAuth();
   const pathname = usePathname();
-  const router = useRouter();
   const sidebar = useSidebar();
 
   if (!user) return null;
@@ -40,7 +39,7 @@ function InternalSidebar() {
     <Sidebar collapsible="icon" variant="sidebar" side="left">
       <SidebarHeader>
         <AppLogo collapsed={sidebar.state === 'collapsed' && !sidebar.isMobile} />
-        <SidebarTrigger className="ml-auto hidden group-data-[collapsible=icon]:hidden group-data-[collapsible=offcanvas]:hidden md:flex" />
+        <SidebarTrigger className="ml-auto hidden md:flex" />
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
@@ -48,23 +47,18 @@ function InternalSidebar() {
             const isActive = pathname === navLink.href || (navLink.href !== "/dashboard" && pathname.startsWith(navLink.href));
             return (
               <SidebarMenuItem key={navLink.href}>
-                <SidebarMenuButton
-                  onClick={() => {
-                    if (sidebar.open && !sidebar.isMobile) {
-                      sidebar.setOpen(false);
-                    }
-                    // For mobile, Sidebar component handles its own sheet closing on navigation implicitly if Link is used.
-                    // If navigation is programmatic like this, we might need to explicitly close it.
-                    if (sidebar.isMobile && sidebar.openMobile) {
-                         sidebar.setOpenMobile(false);
-                    }
-                    router.push(navLink.href);
-                  }}
-                  tooltip={navLink.label}
-                  isActive={isActive}
-                >
-                  <navLink.icon className={cn("h-5 w-5 flex-shrink-0")} />
-                  <span>{navLink.label}</span>
+                <SidebarMenuButton asChild tooltip={navLink.label} isActive={isActive}>
+                  <Link
+                    href={navLink.href}
+                    onClick={() => {
+                      if (sidebar.isMobile && sidebar.openMobile) {
+                        sidebar.setOpenMobile(false);
+                      }
+                    }}
+                  >
+                    <navLink.icon className={cn("h-5 w-5 flex-shrink-0")} />
+                    <span>{navLink.label}</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             );
