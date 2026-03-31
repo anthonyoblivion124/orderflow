@@ -76,3 +76,88 @@ Create a Python module + CLI that parses a raw CSV and exports normalized tables
 
 Keep code production-ready and readable.
 ```
+
+```
+<table border="1" cellspacing="0" cellpadding="6">
+  <thead>
+    <tr>
+      <th rowspan="2">Date</th>
+      <th rowspan="2">Company Name</th>
+      <th rowspan="2">Total</th>
+
+      <th colspan="3">Discount</th>
+      <th colspan="3">Whole Sale</th>
+      <th colspan="3">Debt</th>
+
+      <th rowspan="2">Quantity</th>
+      <th rowspan="2">POS Amount</th>
+      <th rowspan="2">Change</th>
+      <th rowspan="2">POS Amount + Change</th>
+      <th rowspan="2">Cash Received</th>
+
+      <th colspan="6">Banking</th>
+      <th rowspan="2">Surplus / Deficit</th>
+    </tr>
+
+    <tr>
+      <!-- Discount -->
+      <th>YSB</th>
+      <th>Gift</th>
+      <th>Shop Discount</th>
+
+      <!-- Wholesale -->
+      <th>Customer Name</th>
+      <th>Company Name</th>
+      <th>Total</th>
+
+      <!-- Debt -->
+      <th>Customer Name</th>
+      <th>Company Name</th>
+      <th>Total</th>
+
+      <!-- Banking -->
+      <th>KPay (Personal)</th>
+      <th>KPay (QR)</th>
+      <th>AYA Pay</th>
+      <th>KBZ Bank</th>
+      <th>AYA Bank</th>
+      <th>MAB Bank</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>31/01/2025</td>
+      <td>Paul Mitchel</td>
+      <td></td>
+
+      <td></td>
+      <td></td>
+      <td></td>
+
+      <td></td>
+      <td></td>
+      <td></td>
+
+      <td></td>
+      <td></td>
+      <td></td>
+
+      <td>1</td>
+      <td>23,774,358</td>
+      <td>125,000</td>
+      <td>23,899,358</td>
+      <td>13,552,600</td>
+
+      <td>10,346,950</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+
+      <td>192</td>
+    </tr>
+  </tbody>
+</table>
+```
