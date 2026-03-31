@@ -4,9 +4,29 @@ type GroupAggregate = {
   quantity: number;
 };
 
+type ItemExtract = {
+  groupName: string;
+  itemCode: string;
+  itemName: string;
+  declaredTotalQty: number | null;
+};
+
+type SaleExtract = {
+  groupName: string;
+  itemCode: string;
+  itemName: string;
+  voucherNo: string;
+  customer: string;
+  qty: number | null;
+  unitPrice: number | null;
+  amount: number | null;
+};
+
 const DATE_TIME_PATTERN = /^\d{1,2}\/\d{1,2}\/\d{4}\s+\d{1,2}:\d{2}\s+(AM|PM)$/i;
 const GROUP_MARKER_PATTERN = /^(group|အုပ်စု)$/i;
 const FROM_DATE_PATTERN = /\bfrom\s+(\d{1,2}\/\d{1,2}\/\d{4})\b/i;
+const ITEM_PATTERN = /^Item\s*-\s*([^,]+),\s*(.+)$/i;
+const TOTAL_QTY_PATTERN = /Total\s*Qty\s*:\s*(\d+)/i;
 
 function parseReportCsv(data: string): string[][] {
   const rows: string[][] = [];
@@ -83,23 +103,106 @@ function normalizeGroupName(cell: string): string {
   return cell.replace(/^[-\s]+/, "").trim();
 }
 
-function parseIsoDateFromMmddyyyy(mmddyyyy: string): string {
-  const parts = mmddyyyy.split("/");
-  if (parts.length !== 3) {
-    throw new Error(`Invalid date format: ${mmddyyyy}`);
+function firstMatch(cells: string[], pattern: RegExp): string | null {
+  for (const cell of cells) {
+    if (pattern.test(cell)) {
+      return cell;
+    }
+  }
+  return null;
+}
+
+function parseItemLine(cells: string[]): { itemCode: string; itemName: string; declaredTotalQty: number | null } | null {
+  const itemCell = firstMatch(cells, ITEM_PATTERN);
+  if (!itemCell) {
+    return null;
   }
 
-  const [month, day, year] = parts;
+  const match = itemCell.match(ITEM_PATTERN);
+  if (!match) {
+    return null;
+  }
+
+  let declaredTotalQty: number | null = null;
+  for (const cell of cells) {
+    const qtyMatch = cell.match(TOTAL_QTY_PATTERN);
+    if (qtyMatch?.[1]) {
+      declaredTotalQty = Number(qtyMatch[1]);
+      break;
+    }
+  }
+
+  return {
+    itemCode: match[1]?.trim() || "",
+    itemName: match[2]?.trim() || "",
+    declaredTotalQty: Number.isFinite(declaredTotalQty) ? declaredTotalQty : null,
+  };
+}
+
+function parseTransactionRow(cells: string[]): {
+  voucherNo: string;
+  customer: string;
+  qty: number | null;
+  unitPrice: number | null;
+  amount: number | null;
+} | null {
+  const dateIndex = cells.findIndex((cell) => DATE_TIME_PATTERN.test(cell));
+  if (dateIndex < 0) {
+    return null;
+  }
+
+  const tail = cells.slice(dateIndex + 1).map((value) => value.trim()).filter(Boolean);
+  if (tail.length === 0) {
+    return null;
+  }
+
+  const textTokens: string[] = [];
+  const numericTokens: number[] = [];
+
+  for (const token of tail) {
+    const numeric = parseNumber(token);
+    if (numeric === null) {
+      textTokens.push(token);
+    } else {
+      numericTokens.push(numeric);
+    }
+  }
+
+  const voucherNo = textTokens[0] || "";
+  const customer = textTokens[1] || "";
+  const qty = numericTokens.length > 0 ? numericTokens[0] : null;
+  const unitPrice = numericTokens.length > 1 ? numericTokens[1] : null;
+  const amount = numericTokens.length > 0 ? numericTokens[numericTokens.length - 1] : null;
+
+  return {
+    voucherNo,
+    customer,
+    qty,
+    unitPrice,
+    amount,
+  };
+}
+
+function parseIsoDateFromDdmmyyyy(ddmmyyyy: string): string {
+  const parts = ddmmyyyy.split("/");
+  if (parts.length !== 3) {
+    throw new Error(`Invalid date format: ${ddmmyyyy}`);
+  }
+
+  const [day, month, year] = parts;
   const iso = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
-    throw new Error(`Invalid date format: ${mmddyyyy}`);
+    throw new Error(`Invalid date format: ${ddmmyyyy}`);
   }
   return iso;
 }
 
 export function extractSalesByItemSummary(csvText: string): {
   reportDateIso: string;
+  reportDateDisplay: string;
   groups: GroupAggregate[];
+  items: ItemExtract[];
+  sales: SaleExtract[];
 } {
   const rows = parseReportCsv(csvText);
   if (rows.length === 0) {
@@ -107,15 +210,31 @@ export function extractSalesByItemSummary(csvText: string): {
   }
 
   let reportDateIso = "";
+  let reportDateDisplay = "";
   const aggregates = new Map<string, GroupAggregate>();
+  const items: ItemExtract[] = [];
+  const sales: SaleExtract[] = [];
   let currentGroup = "";
+  let currentItemCode = "";
+  let currentItemName = "";
 
   for (const row of rows) {
+    if (!reportDateDisplay) {
+      const transactionCell = row.find((cell) => DATE_TIME_PATTERN.test(cell));
+      if (transactionCell) {
+        reportDateDisplay = transactionCell.trim();
+      }
+    }
+
     if (!reportDateIso) {
       for (const cell of row) {
         const match = cell.match(FROM_DATE_PATTERN);
         if (match?.[1]) {
-          reportDateIso = parseIsoDateFromMmddyyyy(match[1]);
+          try {
+            reportDateIso = parseIsoDateFromDdmmyyyy(match[1]);
+          } catch {
+            // Date parsing failed, will use fallback
+          }
           break;
         }
       }
@@ -130,6 +249,8 @@ export function extractSalesByItemSummary(csvText: string): {
 
       if (candidate) {
         currentGroup = candidate;
+        currentItemCode = "";
+        currentItemName = "";
         if (!aggregates.has(currentGroup)) {
           aggregates.set(currentGroup, { groupName: currentGroup, total: 0, quantity: 0 });
         }
@@ -137,18 +258,37 @@ export function extractSalesByItemSummary(csvText: string): {
       continue;
     }
 
-    const dateIndex = row.findIndex((cell) => DATE_TIME_PATTERN.test(cell));
-    if (dateIndex < 0 || !currentGroup) {
+    const parsedItem = parseItemLine(row);
+    if (parsedItem) {
+      currentItemCode = parsedItem.itemCode;
+      currentItemName = parsedItem.itemName;
+      items.push({
+        groupName: currentGroup,
+        itemCode: parsedItem.itemCode,
+        itemName: parsedItem.itemName,
+        declaredTotalQty: parsedItem.declaredTotalQty,
+      });
       continue;
     }
 
-    const numericTokens = row.slice(dateIndex + 1).map(parseNumber).filter((value): value is number => value !== null);
-    if (numericTokens.length < 2) {
+    const parsedTransaction = parseTransactionRow(row);
+    if (!parsedTransaction || !currentGroup || !currentItemCode) {
       continue;
     }
 
-    const qty = numericTokens[0] ?? 0;
-    const amount = numericTokens[numericTokens.length - 1] ?? 0;
+    const qty = parsedTransaction.qty ?? 0;
+    const amount = parsedTransaction.amount ?? 0;
+
+    sales.push({
+      groupName: currentGroup,
+      itemCode: currentItemCode,
+      itemName: currentItemName,
+      voucherNo: parsedTransaction.voucherNo,
+      customer: parsedTransaction.customer,
+      qty: parsedTransaction.qty,
+      unitPrice: parsedTransaction.unitPrice,
+      amount: parsedTransaction.amount,
+    });
 
     const existing = aggregates.get(currentGroup);
     if (existing) {
@@ -157,12 +297,11 @@ export function extractSalesByItemSummary(csvText: string): {
     }
   }
 
-  if (!reportDateIso) {
-    throw new Error("Could not detect report date (From MM/DD/YYYY)");
-  }
-
   return {
-    reportDateIso,
+    reportDateIso: reportDateIso || "",
+    reportDateDisplay: reportDateDisplay || "",
     groups: Array.from(aggregates.values()).filter((item) => item.quantity > 0 || item.total > 0),
+    items,
+    sales,
   };
 }

@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input";
 export default function DailyPrintImportPage() {
   const [file, setFile] = useState<File | null>(null);
   const [mode, setMode] = useState<"daily-print" | "sales-summary">("daily-print");
-  const [reportDateOverride, setReportDateOverride] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [message, setMessage] = useState<string>("");
   const [isError, setIsError] = useState(false);
@@ -45,7 +44,7 @@ export default function DailyPrintImportPage() {
         },
         body:
           mode === "sales-summary"
-            ? JSON.stringify({ csvText, reportDate: reportDateOverride })
+            ? JSON.stringify({ csvText })
             : JSON.stringify({ csvText }),
       });
 
@@ -66,7 +65,6 @@ export default function DailyPrintImportPage() {
         importedRows?: number;
         matchedGroups?: number;
         updatedRows?: number;
-        insertedRows?: number;
       };
 
       if (!response.ok || !payload.ok) {
@@ -79,7 +77,7 @@ export default function DailyPrintImportPage() {
         );
       } else {
         setMessage(
-          `Sales summary applied for ${payload.reportDate ?? "selected date"}: matched ${payload.matchedGroups ?? 0}, updated ${payload.updatedRows ?? 0}, inserted ${payload.insertedRows ?? 0}.`
+          `Sales summary applied for ${payload.reportDate ?? "selected date"}: matched ${payload.matchedGroups ?? 0}, updated ${payload.updatedRows ?? 0}.`
         );
       }
     } catch (error) {
@@ -131,15 +129,6 @@ export default function DailyPrintImportPage() {
                 SalesByItemSummary CSV (update total + quantity)
               </label>
             </div>
-
-            {mode === "sales-summary" ? (
-              <Input
-                type="date"
-                value={reportDateOverride}
-                onChange={(event) => setReportDateOverride(event.target.value)}
-                placeholder="Optional report date override"
-              />
-            ) : null}
 
             <Input
               type="file"
