@@ -121,3 +121,14 @@ Tests:
 ```bash
 pytest scripts/tests/test_sales_csv_helper.py
 ```
+#backend
+
+
+PORT=4000
+FRONTEND_URL=http://localhost:9002
+SUPABASE_URL=https://avopnpohapyfadnkdtvx.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF2b3BucG9oYXB5ZmFkbmtkdHZ4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDk3NzM2NywiZXhwIjoyMDkwNTUzMzY3fQ.0a802X5C39bOLktLPJAyeQK8NyI7nlU5oT8XbCHBlZo
+
+#Frontend
+BACKEND_URL=http://localhost:4000
+NEXT_PUBLIC_BACKEND_URL=http://localhost:4000
