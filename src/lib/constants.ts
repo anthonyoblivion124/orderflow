@@ -1,6 +1,6 @@
 
 import type { UserRole, PurchaseOrderStatus } from "@/types";
-import { LayoutDashboard, ShoppingCart, Users, Building, CreditCard } from "lucide-react"; // Removed Settings icon
+import { LayoutDashboard, ShoppingCart, Users, Building, CreditCard, FileText } from "lucide-react"; // Added CSV icon
 
 export const APP_NAME = "OrderFlow";
 export const APP_DESCRIPTION = "Manage your purchase orders efficiently.";
@@ -24,6 +24,7 @@ export const NAV_LINKS = [
   { href: "/purchase-orders", label: "Purchase Orders", icon: ShoppingCart, roles: USER_ROLES },
   { href: "/suppliers", label: "Suppliers", icon: Building, roles: USER_ROLES },
   { href: "/payment-methods", label: "Payment Methods", icon: CreditCard, roles: ["admin", "manager"] },
+  { href: "/daily-print", label: "Daily Print", icon: FileText, roles: ["admin", "manager", "viewer"] },
   { href: "/users", label: "User Management", icon: Users, roles: ["admin"] },
   // { href: "/settings", label: "Settings", icon: Settings, roles: ["admin", "manager"] }, // Removed settings link
 ];
