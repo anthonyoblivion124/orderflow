@@ -15,12 +15,101 @@ import {
 } from "@/components/ui/table";
 
 function parseCsv(data: string): string[][] {
-  const lines = data
-    .split(/\r?\n/)
-    .filter((line) => line.trim().length > 0);
+  const rows: string[][] = [];
+  let currentRow: string[] = [];
+  let currentCell = "";
+  let insideQuotes = false;
 
-  return lines.map((line) => line.split(",").map((v) => v.trim()));
+  for (let index = 0; index < data.length; index++) {
+    const char = data[index];
+    const nextChar = data[index + 1];
+
+    if (char === '"') {
+      if (insideQuotes && nextChar === '"') {
+        currentCell += '"';
+        index++;
+      } else {
+        insideQuotes = !insideQuotes;
+      }
+      continue;
+    }
+
+    if (char === "," && !insideQuotes) {
+      currentRow.push(currentCell);
+      currentCell = "";
+      continue;
+    }
+
+    if ((char === "\n" || char === "\r") && !insideQuotes) {
+      if (char === "\r" && nextChar === "\n") {
+        index++;
+      }
+
+      currentRow.push(currentCell);
+      const normalizedRow = currentRow.map((cell) =>
+        cell.replace(/[\r\n]+/g, " ").replace(/\s+/g, " ").trim()
+      );
+
+      if (normalizedRow.some((cell) => cell.length > 0)) {
+        rows.push(normalizedRow);
+      }
+
+      currentRow = [];
+      currentCell = "";
+      continue;
+    }
+
+    currentCell += char;
+  }
+
+  if (currentCell.length > 0 || currentRow.length > 0) {
+    currentRow.push(currentCell);
+    const normalizedRow = currentRow.map((cell) =>
+      cell.replace(/[\r\n]+/g, " ").replace(/\s+/g, " ").trim()
+    );
+    if (normalizedRow.some((cell) => cell.length > 0)) {
+      rows.push(normalizedRow);
+    }
+  }
+
+  return rows;
 }
+
+const TOTAL_COLUMNS = 24;
+
+const fixedMainHeaders = [
+  { label: "Date", rowSpan: 2 },
+  { label: "Company Name", rowSpan: 2 },
+  { label: "Total", rowSpan: 2 },
+  { label: "Discount", colSpan: 3 },
+  { label: "Whole Sale", colSpan: 3 },
+  { label: "Debt", colSpan: 3 },
+  { label: "Quantity", rowSpan: 2 },
+  { label: "POS Amount", rowSpan: 2 },
+  { label: "Change", rowSpan: 2 },
+  { label: "POS Amount + Change", rowSpan: 2 },
+  { label: "Cash Received", rowSpan: 2 },
+  { label: "Banking", colSpan: 6 },
+  { label: "Surplus / Deficit", rowSpan: 2 },
+] as const;
+
+const fixedSubHeaders = [
+  "YSB",
+  "Gift",
+  "Shop Discount",
+  "Customer Name",
+  "Company Name",
+  "Total",
+  "Customer Name",
+  "Company Name",
+  "Total",
+  "KPay (Personal)",
+  "KPay (QR)",
+  "AYA Pay",
+  "KBZ Bank",
+  "AYA Bank",
+  "MAB Bank",
+] as const;
 
 export default function DailyPrintPage() {
   const csvPath = path.join(process.cwd(), "DailyPrint.csv");
@@ -42,36 +131,18 @@ export default function DailyPrintPage() {
     errorMessage = error instanceof Error ? error.message : "Failed to load CSV";
   }
 
-  // Extract headers from CSV
-  const mainHeadersRow = csvData.length > 0 ? csvData[0] : [];
-  const subHeadersRow = csvData.length > 1 ? csvData[1] : [];
-  const dataRows = csvData.length > 2 ? csvData.slice(2) : [];
-
-  // Build main headers with colspan
-  const mainHeaders: { label: string; colspan: number }[] = [];
-  let currentColspan = 0;
-  let lastLabel = "";
-
-  mainHeadersRow.forEach((cell) => {
-    const trimmed = cell.trim();
-    if (trimmed === "" || trimmed === lastLabel) {
-      // Empty or duplicate means it's part of the colspan
-      if (lastLabel) currentColspan++;
-    } else {
-      // New header
-      if (lastLabel) {
-        mainHeaders.push({ label: lastLabel, colspan: currentColspan });
+  const reportDate = csvData[0]?.[0] ?? "";
+  const sourceRows = csvData.length > 2 ? csvData.slice(2) : [];
+  const dataRows = sourceRows
+    .filter((row) => row.some((cell) => cell.trim().length > 0))
+    .map((row) => {
+      const companyAndValues = [...row];
+      while (companyAndValues.length < TOTAL_COLUMNS - 1) {
+        companyAndValues.push("");
       }
-      lastLabel = trimmed;
-      currentColspan = 1;
-    }
-  });
-  // Add the last header
-  if (lastLabel) {
-    mainHeaders.push({ label: lastLabel, colspan: currentColspan });
-  }
 
-  const subHeaders = subHeadersRow.map((h) => h.trim());
+      return [reportDate, ...companyAndValues.slice(0, TOTAL_COLUMNS - 1)];
+    });
 
   return (
     <AuthGuard allowedRoles={["admin", "manager", "viewer"]}>
@@ -91,10 +162,11 @@ export default function DailyPrintPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    {mainHeaders.map((header, index) => (
+                    {fixedMainHeaders.map((header, index) => (
                       <TableHead
                         key={index}
-                        colSpan={header.colspan}
+                        colSpan={header.colSpan}
+                        rowSpan={header.rowSpan}
                         className="text-center font-bold bg-muted"
                       >
                         {header.label}
@@ -102,7 +174,7 @@ export default function DailyPrintPage() {
                     ))}
                   </TableRow>
                   <TableRow>
-                    {subHeaders.map((header, index) => (
+                    {fixedSubHeaders.map((header, index) => (
                       <TableHead key={index} className="text-center">
                         {header}
                       </TableHead>
