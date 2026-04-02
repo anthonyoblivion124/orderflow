@@ -15,6 +15,7 @@ type SaleExtract = {
   groupName: string;
   itemCode: string;
   itemName: string;
+  saleDateTime: string;
   voucherNo: string;
   customer: string;
   qty: number | null;
@@ -140,6 +141,7 @@ function parseItemLine(cells: string[]): { itemCode: string; itemName: string; d
 }
 
 function parseTransactionRow(cells: string[]): {
+  saleDateTime: string;
   voucherNo: string;
   customer: string;
   qty: number | null;
@@ -175,6 +177,7 @@ function parseTransactionRow(cells: string[]): {
   const amount = numericTokens.length > 0 ? numericTokens[numericTokens.length - 1] : null;
 
   return {
+    saleDateTime: cells[dateIndex]?.trim() || "",
     voucherNo,
     customer,
     qty,
@@ -283,6 +286,7 @@ export function extractSalesByItemSummary(csvText: string): {
       groupName: currentGroup,
       itemCode: currentItemCode,
       itemName: currentItemName,
+      saleDateTime: parsedTransaction.saleDateTime,
       voucherNo: parsedTransaction.voucherNo,
       customer: parsedTransaction.customer,
       qty: parsedTransaction.qty,

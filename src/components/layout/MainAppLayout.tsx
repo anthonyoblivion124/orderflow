@@ -19,6 +19,9 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarTrigger,
   SidebarInset,
   useSidebar,
@@ -45,6 +48,8 @@ function InternalSidebar() {
         <SidebarMenu>
           {NAV_LINKS.filter(link => hasRole(link.roles)).map((navLink) => {
             const isActive = pathname === navLink.href || (navLink.href !== "/dashboard" && pathname.startsWith(navLink.href));
+            const showDailyPrintUpload = navLink.href === "/daily-print" && hasRole(["admin", "manager"]);
+            const isUploadExcelActive = pathname.startsWith("/daily-print/upload-excel") || pathname.startsWith("/daily-print/import");
             return (
               <SidebarMenuItem key={navLink.href}>
                 <SidebarMenuButton asChild tooltip={navLink.label} isActive={isActive}>
@@ -60,6 +65,24 @@ function InternalSidebar() {
                     <span>{navLink.label}</span>
                   </Link>
                 </SidebarMenuButton>
+                {showDailyPrintUpload ? (
+                  <SidebarMenuSub>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton asChild isActive={isUploadExcelActive}>
+                        <Link
+                          href="/daily-print/upload-excel"
+                          onClick={() => {
+                            if (sidebar.isMobile && sidebar.openMobile) {
+                              sidebar.setOpenMobile(false);
+                            }
+                          }}
+                        >
+                          <span>Upload Excel</span>
+                        </Link>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  </SidebarMenuSub>
+                ) : null}
               </SidebarMenuItem>
             );
           })}

@@ -2,7 +2,6 @@ import MainAppLayout from "@/components/layout/MainAppLayout";
 import AuthGuard from "@/components/auth/AuthGuard";
 import PageHeader from "@/components/shared/PageHeader";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -92,7 +91,7 @@ function getPinnedCellClass(columnIndex: number): string {
 export default async function DailyPrintPage({
   searchParams,
 }: {
-  searchParams?: { reportDate?: string };
+  searchParams?: Promise<{ reportDate?: string }>;
 }) {
   let errorMessage: string | null = null;
   let availableDates: string[] = [];
@@ -103,7 +102,8 @@ export default async function DailyPrintPage({
     errorMessage = error instanceof Error ? error.message : "Failed to load daily print dates";
   }
 
-  const requestedReportDate = searchParams?.reportDate?.trim() || "";
+  const params = await searchParams;
+  const requestedReportDate = params?.reportDate?.trim() || "";
   const selectedReportDateIso =
     (requestedReportDate && availableDates.includes(requestedReportDate) ? requestedReportDate : "") ||
     availableDates[0] ||
@@ -135,16 +135,6 @@ export default async function DailyPrintPage({
         <PageHeader
           title="Daily Print"
           description="Daily sales summary from database."
-          action={
-            <div className="flex gap-2">
-              <Button variant="outline" asChild>
-                <Link href="/daily-print/extracted">View Extracted</Link>
-              </Button>
-              <Button asChild>
-                <Link href="/daily-print/import">Import CSV</Link>
-              </Button>
-            </div>
-          }
         />
 
         <Card>

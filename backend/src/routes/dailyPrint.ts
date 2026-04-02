@@ -52,6 +52,7 @@ async function saveExtractedFiles(extracted: {
     groupName: string;
     itemCode: string;
     itemName: string;
+    saleDateTime: string;
     voucherNo: string;
     customer: string;
     qty: number | null;
@@ -70,7 +71,7 @@ async function saveExtractedFiles(extracted: {
   }
 
   const groupRows = extracted.groups.map((g) => ({
-    report_date: reportDateValue,
+    sale_date: reportDateValue,
     group_name: g.groupName,
     line_count: salesByGroup.get(g.groupName.trim().toLowerCase()) ?? 0,
     total_qty: g.quantity,
@@ -78,17 +79,17 @@ async function saveExtractedFiles(extracted: {
   }));
   await writeFile(
     join(extractedDir, "group_totals.csv"),
-    toCsv(["report_date", "group_name", "line_count", "total_qty", "total_sales"], groupRows)
+    toCsv(["sale_date", "group_name", "line_count", "total_qty", "total_sales"], groupRows)
   );
 
   const groupOnlyRows = extracted.groups.map((g) => ({
-    report_date: reportDateValue,
+    sale_date: reportDateValue,
     group_name: g.groupName,
   }));
-  await writeFile(join(extractedDir, "groups.csv"), toCsv(["report_date", "group_name"], groupOnlyRows));
+  await writeFile(join(extractedDir, "groups.csv"), toCsv(["sale_date", "group_name"], groupOnlyRows));
 
   const itemRows = extracted.items.map((item) => ({
-    report_date: reportDateValue,
+    sale_date: reportDateValue,
     group_name: item.groupName,
     item_code: item.itemCode,
     item_name: item.itemName,
@@ -96,11 +97,11 @@ async function saveExtractedFiles(extracted: {
   }));
   await writeFile(
     join(extractedDir, "items.csv"),
-    toCsv(["report_date", "group_name", "item_code", "item_name", "declared_total_qty"], itemRows)
+    toCsv(["sale_date", "group_name", "item_code", "item_name", "declared_total_qty"], itemRows)
   );
 
   const salesRows = extracted.sales.map((sale) => ({
-    report_date: reportDateValue,
+    sale_date: sale.saleDateTime,
     group_name: sale.groupName,
     item_code: sale.itemCode,
     item_name: sale.itemName,
@@ -113,7 +114,7 @@ async function saveExtractedFiles(extracted: {
   await writeFile(
     join(extractedDir, "sales.csv"),
     toCsv(
-      ["report_date", "group_name", "item_code", "item_name", "voucher_no", "customer", "qty", "unit_price", "amount"],
+      ["sale_date", "group_name", "item_code", "item_name", "voucher_no", "customer", "qty", "unit_price", "amount"],
       salesRows
     )
   );
@@ -122,10 +123,10 @@ async function saveExtractedFiles(extracted: {
   const month = /^\d{4}-\d{2}-\d{2}$/.test(extracted.reportDateIso)
     ? extracted.reportDateIso.slice(0, 7)
     : "";
-  const monthlyRows = month ? [{ report_date: reportDateValue, month, total_sales: monthlyTotal }] : [];
+  const monthlyRows = month ? [{ sale_date: reportDateValue, month, total_sales: monthlyTotal }] : [];
   await writeFile(
     join(extractedDir, "monthly_sales.csv"),
-    toCsv(["report_date", "month", "total_sales"], monthlyRows)
+    toCsv(["sale_date", "month", "total_sales"], monthlyRows)
   );
 }
 
@@ -225,7 +226,6 @@ dailyPrintRouter.post("/daily-print/import", async (req, res) => {
 
 dailyPrintRouter.post("/daily-print/import-sales-summary", async (req, res) => {
   const csvText = String(req.body?.csvText ?? "");
-  const reportDateOverride = String(req.body?.reportDate ?? "").trim();
 
   if (!csvText.trim()) {
     return res.status(400).json({ error: "csvText is required" });
@@ -234,27 +234,23 @@ dailyPrintRouter.post("/daily-print/import-sales-summary", async (req, res) => {
   try {
     const extracted = extractSalesByItemSummary(csvText);
 
-    // Use override if provided, otherwise use extracted date, otherwise fall back to today
-    let reportDate = reportDateOverride || extracted.reportDateIso;
+    const updateReportDate = isValidIsoDate(extracted.reportDateIso)
+      ? extracted.reportDateIso
+      : "";
 
-    if (!reportDate) {
-      const today = new Date();
-      reportDate = today.toISOString().split("T")[0];
-    }
+    let existingRows: Array<{ id: string; row_index: number; company_name: string | null }> = [];
+    if (updateReportDate) {
+      const { data, error: fetchError } = await supabase
+        .from("daily_print_rows")
+        .select("id, row_index, company_name")
+        .eq("report_date", updateReportDate)
+        .order("row_index", { ascending: true });
 
-    if (!isValidIsoDate(reportDate)) {
-      console.error(`Invalid reportDate: "${reportDate}" | override: "${reportDateOverride}" | extracted: "${extracted.reportDateIso}"`);
-      return res.status(400).json({ error: `Invalid reportDate: ${reportDate}. Use YYYY-MM-DD.` });
-    }
+      if (fetchError) {
+        return res.status(500).json({ error: fetchError.message });
+      }
 
-    const { data: existingRows, error: fetchError } = await supabase
-      .from("daily_print_rows")
-      .select("id, row_index, company_name")
-      .eq("report_date", reportDate)
-      .order("row_index", { ascending: true });
-
-    if (fetchError) {
-      return res.status(500).json({ error: fetchError.message });
+      existingRows = data ?? [];
     }
 
     const byCompanyName = new Map<string, { id: string; row_index: number; company_name: string | null }>();
@@ -268,42 +264,42 @@ dailyPrintRouter.post("/daily-print/import-sales-summary", async (req, res) => {
 
     let updated = 0;
 
-    for (const group of extracted.groups) {
-      const key = group.groupName.trim().toLowerCase();
-      const matched = byCompanyName.get(key);
+    if (updateReportDate) {
+      for (const group of extracted.groups) {
+        const key = group.groupName.trim().toLowerCase();
+        const matched = byCompanyName.get(key);
 
-      if (matched) {
-        const { error } = await supabase
-          .from("daily_print_rows")
-          .update({
-            total: group.total,
-            quantity: group.quantity,
-          })
-          .eq("id", matched.id);
+        if (matched) {
+          const { error } = await supabase
+            .from("daily_print_rows")
+            .update({
+              total: group.total,
+              quantity: group.quantity,
+            })
+            .eq("id", matched.id);
 
-        if (error) {
-          return res.status(500).json({ error: error.message });
+          if (error) {
+            return res.status(500).json({ error: error.message });
+          }
+
+          updated += 1;
         }
-
-        updated += 1;
       }
     }
 
     try {
-      await saveExtractedFiles({
-        ...extracted,
-        reportDateIso: reportDate,
-        reportDateDisplay: extracted.reportDateDisplay || formatIsoAsDisplayDate(reportDate),
-      });
+      await saveExtractedFiles(extracted);
     } catch (fileError) {
       console.error("Failed to save extracted files:", fileError);
     }
 
     return res.json({
       ok: true,
-      reportDate,
+      reportDate: updateReportDate || null,
       matchedGroups: extracted.groups.length,
       updatedRows: updated,
+      extractedRows: extracted.sales.length,
+      extractionOnly: !updateReportDate,
     });
   } catch (error) {
     return res.status(400).json({

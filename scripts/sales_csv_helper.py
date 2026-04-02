@@ -277,8 +277,9 @@ def write_table(path: Path, rows: list[dict[str, Any]], headers: list[str]) -> N
 def export_tables(csv_path: Path, output_dir: Path, verbose: bool = False) -> dict[str, Path]:
     tables = extract_sales_tables(csv_path, verbose=verbose)
     sales_rows = dataclass_rows(tables.sales)
-    monthly = summarize_monthly_sales(sales_rows)
-    group_totals = summarize_group_sales(sales_rows)
+    sale_date = tables.sales[0].sale_datetime if tables.sales else ""
+    monthly = summarize_monthly_sales(sales_rows, sale_date=sale_date)
+    group_totals = summarize_group_sales(sales_rows, sale_date=sale_date)
     output_paths = {
         "groups": output_dir / "groups.csv",
         "items": output_dir / "items.csv",
@@ -287,16 +288,20 @@ def export_tables(csv_path: Path, output_dir: Path, verbose: bool = False) -> di
         "group_totals": output_dir / "group_totals.csv",
     }
 
-    write_table(output_paths["groups"], dataclass_rows(tables.groups), ["group_name"])
+    groups_rows = [{"sale_date": sale_date, **row} for row in dataclass_rows(tables.groups)]
+    write_table(output_paths["groups"], groups_rows, ["sale_date", "group_name"])
+    items_rows = [{"sale_date": sale_date, **row} for row in dataclass_rows(tables.items)]
     write_table(
         output_paths["items"],
-        dataclass_rows(tables.items),
-        ["group_name", "item_code", "item_name", "declared_total_qty"],
+        items_rows,
+        ["sale_date", "group_name", "item_code", "item_name", "declared_total_qty"],
     )
+    sales_rows_with_date = [{"sale_date": str(row.get("sale_datetime", "")).strip(), **row} for row in sales_rows]
     write_table(
         output_paths["sales"],
-        sales_rows,
+        sales_rows_with_date,
         [
+            "sale_date",
             "group_name",
             "item_code",
             "item_name",
@@ -308,11 +313,11 @@ def export_tables(csv_path: Path, output_dir: Path, verbose: bool = False) -> di
             "amount",
         ],
     )
-    write_table(output_paths["monthly_sales"], monthly, ["month", "total_sales"])
+    write_table(output_paths["monthly_sales"], monthly, ["sale_date", "month", "total_sales"])
     write_table(
         output_paths["group_totals"],
         group_totals,
-        ["group_name", "line_count", "total_qty", "total_sales"],
+        ["sale_date", "group_name", "line_count", "total_qty", "total_sales"],
     )
 
     if tables.warnings and verbose:
@@ -321,7 +326,7 @@ def export_tables(csv_path: Path, output_dir: Path, verbose: bool = False) -> di
     return output_paths
 
 
-def summarize_monthly_sales(sales_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def summarize_monthly_sales(sales_rows: list[dict[str, Any]], sale_date: str = "") -> list[dict[str, Any]]:
     monthly_totals: dict[str, float] = {}
 
     for row in sales_rows:
@@ -329,21 +334,28 @@ def summarize_monthly_sales(sales_rows: list[dict[str, Any]]) -> list[dict[str, 
         amount_value = row.get("amount")
         amount = float(amount_value) if amount_value is not None else 0.0
 
-        try:
-            date = datetime.strptime(sale_datetime, "%m/%d/%Y %I:%M %p")
-            month_key = date.strftime("%Y-%m")
-        except ValueError:
+        date: datetime | None = None
+        for fmt in ("%d/%m/%Y %I:%M %p", "%m/%d/%Y %I:%M %p"):
+            try:
+                date = datetime.strptime(sale_datetime, fmt)
+                break
+            except ValueError:
+                continue
+
+        if date is None:
             continue
+
+        month_key = date.strftime("%Y-%m")
 
         monthly_totals[month_key] = monthly_totals.get(month_key, 0.0) + amount
 
     return [
-        {"month": month, "total_sales": round(total, 2)}
+        {"sale_date": sale_date, "month": month, "total_sales": round(total, 2)}
         for month, total in sorted(monthly_totals.items(), key=lambda item: item[0])
     ]
 
 
-def summarize_group_sales(sales_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def summarize_group_sales(sales_rows: list[dict[str, Any]], sale_date: str = "") -> list[dict[str, Any]]:
     group_totals: dict[str, dict[str, float]] = {}
 
     for row in sales_rows:
@@ -365,6 +377,7 @@ def summarize_group_sales(sales_rows: list[dict[str, Any]]) -> list[dict[str, An
     for group_name, metrics in sorted(group_totals.items(), key=lambda item: item[0].lower()):
         rows.append(
             {
+                "sale_date": sale_date,
                 "group_name": group_name,
                 "line_count": int(metrics["line_count"]),
                 "total_qty": round(metrics["total_qty"], 2),
